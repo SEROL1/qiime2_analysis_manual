@@ -6,3 +6,5 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
   - jekyll-feed
+include:
+  - _includes

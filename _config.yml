@@ -1,0 +1,8 @@
+title: "16S rRNA 解析 共通プロトコル"
+description: "QIIME2 / PICRUSt2 共通手順（ver. 2024.05）"
+theme: minima
+markdown: kramdown
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed

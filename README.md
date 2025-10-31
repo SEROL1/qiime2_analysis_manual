@@ -5,7 +5,7 @@
 
 ## 🧩 STEP 0-0｜初回セットアップ（班フォルダの作成）
 解析を始める前に、`template`フォルダをコピーして自分の班名に変更します。
-
+コピーはコピーボタンを押し、ペーストはUbuntuに右クリックで行えます。
 ```bash
 cd ~/qiime
 cp -r template ishikawa    # ← ishikawaの部分を自分の班名に変更

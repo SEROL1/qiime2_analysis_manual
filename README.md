@@ -55,7 +55,7 @@ cd ~/qiime/$master
 ---
 
 ## 🧬 STEP 2｜FASTQファイルの配置
-受け取ったシーケンスデータ（`*_R1_001.fastq`, `*_R2_001.fastq`）を 先ほど作成した$master/raw_data/にコピーします。
+受け取ったシーケンスデータ（*_R1_001.fastq, *_R2_001.fastq）を 先ほど作成した$master/raw_data/にコピーします。
 
 例：
 ```bash

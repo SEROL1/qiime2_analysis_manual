@@ -3,7 +3,6 @@ description: "QIIME2 / PICRUSt2 共通手順（ver. 2024.05）"
 theme: minima
 markdown: kramdown
 
-# 🔽 これを追加
 url: "https://serol1.github.io"
 baseurl: "/qiime2_analysis_manual"
 

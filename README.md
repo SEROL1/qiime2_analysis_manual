@@ -26,16 +26,7 @@ cp -r template ishikawa    # ← ishikawaの部分を自分の班名に変更
 > ✅ templateは共通構成を保つため削除しないでください。  
 > ✅ 各班は自分のフォルダでのみ解析を行います。  
 
----
 
-## ⚙️ 初回のみ（環境構築がまだのPC）
-```bash
-bash ~/qiime/tools/setup_env.sh
-```
-※ `qiime/` のフォルダ構成とツールスクリプト（manifest, metadata, classifierなど）を自動で配置します。  
-※ すでに `~/qiime/ishikawa` や `~/qiime/tools/` がある場合は不要です。  
-
----
 
 ## 🧩 STEP 0｜解析環境の起動
 
@@ -64,7 +55,7 @@ cd ~/qiime/$master
 ---
 
 ## 🧬 STEP 2｜FASTQファイルの配置
-受け取ったシーケンスデータ（`*_R1_001.fastq`, `*_R2_001.fastq`）を `$master/raw_data/` にコピーします。
+受け取ったシーケンスデータ（`*_R1_001.fastq`, `*_R2_001.fastq`）を 先ほど作成した$master/raw_data/にコピーします。
 
 例：
 ```bash

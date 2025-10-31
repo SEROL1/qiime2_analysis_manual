@@ -12,6 +12,7 @@ title: "16S rRNA 解析 共通プロトコル"
 conda activate q2-picrust2-amplicon-2024.5
 export master=ishikawa   # ← 班名を入力
 cd ~/qiime/$master
+```
 
 # フォルダ構成
 ~/qiime/
@@ -21,4 +22,3 @@ cd ~/qiime/$master
     ├── metadata/
     ├── results_qiime/
     └── results_picrust2/
-```

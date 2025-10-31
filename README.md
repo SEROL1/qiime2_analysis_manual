@@ -34,7 +34,7 @@ cp -r template ishikawa    # ← ishikawaの部分を自分の班名に変更
 
 ```bash
 conda activate q2-picrust2-amplicon-2024.5
-export master=ishikawa   # ← 班名を入力
+export master=ishikawa   # ← 班名を入力（フォルダ名と同じにしてください！）
 cd ~/qiime/$master
 ```
 これ以降、すべてのコマンドで `$master` が自動的に班名に置き換わります。  

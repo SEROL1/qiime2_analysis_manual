@@ -126,16 +126,16 @@ cd ~/qiime/$master
 ## 🧬 STEP 2｜FASTQファイルの配置
 受け取ったシーケンスデータ
 
-例：39320-04_S1_L001_R1_001.fastq.qz,
+例：39320-04_S1_L001_R1_001.fastq.gz,
 
-  39320-04_S1_L001_R2_001.fastq.qz
+  39320-04_S1_L001_R2_001.fastq.gz
     
   を 先ほど作成した$master/raw_data/にコピーします。
 
 例：
 ```bash
-~/qiime/ishikawa/raw_data/39320-04_S1_L001_R1_001.fastq.qz
-~/qiime/ishikawa/raw_data/39320-04_S1_L001_R2_001.fastq.qz
+~/qiime/ishikawa/raw_data/39320-04_S1_L001_R1_001.fastq.gz
+~/qiime/ishikawa/raw_data/39320-04_S1_L001_R2_001.fastq.gz
 ```
 
 ---
@@ -144,7 +144,7 @@ cd ~/qiime/$master
 
 「📋」
 ```bash
-bash ~/make_manifest.sh
+bash ~/qiime/tools/make_manifest.sh
 ```
 自動で $master/manifest/manifest.csv が生成されます。  
 生成後、manifest.csvをexcelで開き
@@ -163,7 +163,7 @@ bash ~/make_manifest.sh
 
 「📋」
 ```bash
-bash ~/make_metadata.sh auto
+bash ~/qiime/tools/make_metadata.sh
 ```
 自動で $master/metadata/metadata.tsv　が生成されます。 
 生成後、metadata.tsvをexcelで開き、
@@ -351,5 +351,5 @@ qiime picrust2 full-pipeline \
 ## 📘 参考情報
 - QIIME2 Documentation（2024.5）: https://docs.qiime2.org/2024.5/
 - SILVA Database (v138.1): https://www.arb-silva.de/
-- 使用環境：Ubuntu 22.04（WSL2）, q2-picrust2-amplicon-2024.5
+- 使用環境：Ubuntu 24.04（WSL2）, q2-picrust2-amplicon-2024.5
 - 作成：SEROL1（QIIME2共通解析マニュアルプロジェクト）

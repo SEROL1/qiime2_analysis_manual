@@ -71,10 +71,10 @@ ls
 
 解析を始める前に、~/qiime/template フォルダをコピーして**自分の班名**に変更します。
 
-「📋」
+「📋」**□を消して自分の班名に変更**
 ```bash
 cd ~/qiime
-cp -r template ishikawa    # ← ishikawaの部分を自分の班名に変更
+cp -r template　□□□
 ```
 
 作成後のフォルダ構成例：
@@ -96,9 +96,9 @@ cp -r template ishikawa    # ← ishikawaの部分を自分の班名に変更
 
 **🧩 4.解析を行う班の設定**
 
-「📋」
+「📋」**□を消して自分の班名に変更**
 ```bash
-export master=ishikawa   # ← 班名を入力（フォルダ名と同じにしてください！）
+export master=□□□   
 cd ~/qiime/$master
 ```
 これ以降、すべてのコマンドで　**$master**　が自動的に班名に置き換わります。  

@@ -196,6 +196,7 @@ bash ~/qiime/tools/make_metadata.sh
 **group 列（例：NC, HF, BR, RBR）は各班で手動入力してください。**
 
 **例（Excel表示）**
+
 | sample-id |    group   | 
 |#q2:types  | categorical|
 | NC1       | NC         |

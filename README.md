@@ -309,16 +309,26 @@ ForwardとReverseの重なりが150bp以上残るようにします。
 ---
 
 ## 🧮 STEP 7｜DADA2によるノイズ除去とASV化
+DADA2処理は数時間〜1日かかるため、**夜間実行**を推奨します。
 
 「📋」**□□□を決定したトリミング長に決定してください。**
 ```bash
-qiime dada2 denoise-paired \
-  --i-demultiplexed-seqs "$master/results_qiime/demux.qza" \
-  --p-trunc-len-f □□□ \
-  --p-trunc-len-r □□□ \
-  --o-table "$master/results_qiime/table.qza" \
-  --o-representative-sequences "$master/results_qiime/rep-seqs.qza" \
-  --o-denoising-stats "$master/results_qiime/denoising-stats.qza"
+tmux new -s dada2 -d \
+  'export master="/home/seeei/qiime/test"; \
+   conda activate q2-picrust2-amplicon-2024.5; \
+   mkdir -p "$master/tmp" "$master/results_qiime"; export TMPDIR="$master/tmp"; \
+   ( time qiime dada2 denoise-paired \
+     --i-demultiplexed-seqs "$master/results_qiime/demux.qza" \
+     --p-trunc-len-f □□□ \
+     --p-trunc-len-r □□□ \
+     --o-table "$master/results_qiime/table.qza" \
+     --o-representative-sequences "$master/results_qiime/rep-seqs.qza" \
+     --o-denoising-stats "$master/results_qiime/denoising-stats.qza" \
+     --p-n-threads 0 --verbose ) 2>&1 | tee "$master/results_qiime/dada2_$(date +%F_%H%M).log"; \
+   qiime feature-table summarize --i-table "$master/results_qiime/table.qza" --o-visualization "$master/results_qiime/table.qzv" --m-sample-metadata-file "$master/metadata/metadata.tsv" || true; \
+   qiime feature-table tabulate-seqs --i-data "$master/results_qiime/rep-seqs.qza" --o-visualization "$master/results_qiime/rep-seqs.qzv" || true; \
+   qiime metadata tabulate --m-input-file "$master/results_qiime/denoising-stats.qza" --o-visualization "$master/results_qiime/denoising-stats.qzv" || true'
+
 ```
 この作業は長くて約１日と、とても時間がかかります。
 

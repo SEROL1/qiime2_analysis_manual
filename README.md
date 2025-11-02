@@ -196,13 +196,14 @@ bash ~/qiime/tools/make_metadata.sh
 **group 列（例：NC, HF, BR, RBR）は各班で手動入力してください。**
 
 **例（Excel表示）**
+| sample-id | group       |
+| --------- | ----------- |
+| #q2:types | categorical |
+| NC1       | NC          |
+| NC2       | NC          |
+| HF1       | HF          |
+| HF2       | HF          |
 
-| sample-id |    group   | 
-|#q2:types  | categorical|
-| NC1       | NC         |
-| NC2       | NC         |
-| HF1       | HF         |
-| HF2       | HF         |
 
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 
@@ -222,8 +223,11 @@ qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
   --input-path $master/manifest/manifest.csv \
   --output-path $master/results_qiime/demux.qza \
-  --input-format PairedEndFastqManifestPhred33V2
+  --input-format PairedEndFastqManifestPhred33
 ```
+✅ 成功メッセージ
+Imported ... as PairedEndFastqManifestPhred33 to .../demux.qza
+が出ればOK。
 生成後、results_qiimeに**qzaファイル**が生成されているか確認してください。
 
 ---

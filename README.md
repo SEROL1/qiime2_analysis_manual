@@ -310,15 +310,15 @@ ForwardとReverseの重なりが150bp以上残るようにします。
 
 ## 🧮 STEP 7｜DADA2によるノイズ除去とASV化
 
-「📋」
+「📋」**□□□を決定したトリミング長に決定してください。**
 ```bash
 qiime dada2 denoise-paired \
-  --i-demultiplexed-seqs $master/results_qiime/demux.qza \
-  --p-trunc-len-f 270 \　　 # 設定したForwardトリミング長
-  --p-trunc-len-r 220 \     # 設定したReverseトリミング長
-  --o-table $master/results_qiime/table.qza \
-  --o-representative-sequences $master/results_qiime/rep-seqs.qza \
-  --o-denoising-stats $master/results_qiime/denoising-stats.qza
+  --i-demultiplexed-seqs "$master/results_qiime/demux.qza" \
+  --p-trunc-len-f □□□ \
+  --p-trunc-len-r □□□ \
+  --o-table "$master/results_qiime/table.qza" \
+  --o-representative-sequences "$master/results_qiime/rep-seqs.qza" \
+  --o-denoising-stats "$master/results_qiime/denoising-stats.qza"
 ```
 この作業は長くて約１日と、とても時間がかかります。
 

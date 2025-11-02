@@ -105,7 +105,7 @@ cp -r template　□□□
 
 「📋」**□を消して自分の班名に変更**
 ```bash
-export master=□□□   
+export master="/home/seeei/qiime/フォルダ名"
 cd ~/qiime/$master
 ```
 これ以降、すべてのコマンドで　**$master**　が自動的に班名に置き換わります。  
@@ -147,6 +147,8 @@ manifest  metadata  raw_data  results_picrust2  results_qiime
 
 ## 🧾 STEP 3｜manifestテンプレートの作成
 
+このステップでは、FASTQファイルの対応表（manifestファイル）を作成します。
+
 「📋」
 ```bash
 bash ~/qiime/tools/make_manifest.sh
@@ -156,11 +158,25 @@ bash ~/qiime/tools/make_manifest.sh
 
 **一列目の「sample-id」 列を自分のサンプル名（例：NC1～5, HF1～5, RBR1～5）に編集します。**
 
+「sample-id」列は forward と reverse がペアになるため
+
+**同じサンプル名を2行続けて入力してください。**
+
 **例（Excel表示）**
-| sample-id | absolute-filepath | direction |
-|------------|-------------------|------------|
-| NC1 | /home/ishikawa/qiime/raw_data/..._R1_001.fastq | forward |
-| NC1 | /home/ishikawa/qiime/raw_data/..._R2_001.fastq | reverse |
+| sample-id | absolute-filepath                                         | direction |
+| -----------| --------------------------------------------------------- | --------- |
+| 例：NC1    | /home/ishikawa/qiime/raw_data/NC1_S1_L001_R1_001.fastq.gz | forward   |
+| 例：NC1    | /home/ishikawa/qiime/raw_data/NC1_S1_L001_R2_001.fastq.gz | reverse   |
+| 例：HF1    | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R1_001.fastq.gz | forward   |
+| 例：HF1    | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R2_001.fastq.gz | reverse   |
+
+次に、後処理として以下を実行することで、ご認識を防ぎます。
+
+「📋」
+```bash
+sed -i 's/\r$//' $master/manifest/manifest.csv
+sed -i '1s/^\xEF\xBB\xBF//' $master/manifest/manifest.csv
+```
 
 ---
 

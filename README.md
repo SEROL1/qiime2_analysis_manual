@@ -195,6 +195,22 @@ bash ~/qiime/tools/make_metadata.sh
 生成後、metadata.tsvをexcelで開き、
 **group 列（例：NC, HF, BR, RBR）は各班で手動入力してください。**
 
+**例（Excel表示）**
+| sample-id |    group   |	 
+|#q2:types  | categorical|
+| NC1       | NC         |
+| NC2       | NC         |
+| HF1       | HF         |
+| HF2       | HF         |
+
+次に、後処理として以下を実行することで、ご認識を防ぎます。
+
+「📋」
+```bash
+sed -i 's/\r$//' "$master/metadata/metadata.tsv"
+sed -i '1s/^\xEF\xBB\xBF//' "$master/metadata/metadata.tsv"
+```
+
 ---
 
 ## 🧫 STEP 5｜FASTQ → QIIME2（.qza）へのインポート

@@ -169,14 +169,10 @@ manifest  metadata  raw_data  results_picrust2  results_qiime
 ```bash
 bash ~/qiime/tools/make_manifest.sh
 ```
-自動で $master/manifest/manifest.csv が生成されます。  
-生成後、manifest.csvをexcelで開き
+自動で $master/manifest/manifest.tsv が生成されます。  
+生成後、manifest.tsvをexcelで開き
 
 **一列目の「sample-id」 列を自分のサンプル名（例：NC1～5, HF1～5, RBR1～5）に編集します。**
-
-「sample-id」列は forward と reverse がペアになるため
-
-**同じサンプル名を2行続けて入力してください。**
 
 **例（Excel表示）**
 | sample-id | forward-absolute-filepath                                 | reverse-absolute-filepath                                 |
@@ -233,13 +229,13 @@ sed -i '1s/^\xEF\xBB\xBF//' "$master/metadata/metadata.tsv"
 「📋」
 ```bash
 qiime tools import \
- --type 'SampleData[PairedEndSequencesWithQuality]' \
- --input-path $master/manifest/manifest.csv \
- --output-path $master/results_qiime/demux.qza \
- --input-format PairedEndFastqManifestPhred33V2
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path $master/manifest/manifest.tsv \
+  --output-path $master/results_qiime/demux.qza \
+  --input-format PairedEndFastqManifestPhred33V2
 ```
 ✅ 成功メッセージ
-Imported ... as PairedEndFastqManifestPhred33 to .../demux.qza
+Imported … as PairedEndFastqManifestPhred33V2 to …/demux.qza
 が出ればOK。
 生成後、results_qiimeに**qzaファイル**が生成されているか確認してください。
 
@@ -250,8 +246,8 @@ Imported ... as PairedEndFastqManifestPhred33 to .../demux.qza
 「📋」
 ```bash
 qiime demux summarize \
-  --i-data $master/results_qiime/demux.qza \
-  --o-visualization $master/results_qiime/demux.qzv
+  --i-data "$master/results_qiime/demux.qza" \
+  --o-visualization "$master/results_qiime/demux.qzv"
 ```
 **生成された qzvファイルを 👉 https://view.qiime2.org にドラッグ＆ドロップして確認します。**
 

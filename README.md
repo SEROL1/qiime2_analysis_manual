@@ -186,6 +186,8 @@ bash ~/qiime/tools/make_manifest.sh
 | 例：HF1    | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R1_001.fastq.gz | forward   |
 | 例：HF1    | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R2_001.fastq.gz | reverse   |
 
+以上のようにsample_idの編集を行った後、**💾上書き保存**をしてください。
+
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 
 「📋」
@@ -215,6 +217,7 @@ bash ~/qiime/tools/make_metadata.sh
 | HF1       | HF          |
 | HF2       | HF          |
 
+以上のようにgroupの編集を行った後、**💾上書き保存**をしてください。
 
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 
@@ -231,10 +234,10 @@ sed -i '1s/^\xEF\xBB\xBF//' "$master/metadata/metadata.tsv"
 「📋」
 ```bash
 qiime tools import \
-  --type 'SampleData[PairedEndSequencesWithQuality]' \
-  --input-path $master/manifest/manifest.csv \
-  --output-path $master/results_qiime/demux.qza \
-  --input-format PairedEndFastqManifestPhred33
+ --type 'SampleData[PairedEndSequencesWithQuality]' \
+ --input-path $master/manifest/manifest.csv \
+ --output-path $master/results_qiime/demux.qza \
+ --input-format PairedEndFastqManifestPhred33V2
 ```
 ✅ 成功メッセージ
 Imported ... as PairedEndFastqManifestPhred33 to .../demux.qza
@@ -296,6 +299,8 @@ qiime demux summarize \
 
 各サンプルのグラフを開き、右端に向かってスコアが急激に下がる箇所を探します。
 
+目安として、**Phredスコアの基準を30とし、グラフの黒部分が30を超え始める箇所**を探します。
+
 **2.品質低下が始まる少し手前をカット位置に設定**
 
 たとえば、R1のスコアが270bp付近で下がり始めたら、
@@ -314,6 +319,10 @@ qiime demux summarize \
 
 ForwardとReverseの重なりが150bp以上残るようにします。
 そうしないと、マージ（重ね合わせ）ができずにエラーが発生します。
+
+```
+マージ＝（Forward:Lf）＋（Reverse:Lr）－253
+```
 
 このトリミング長をもとに次のSTEP7での数字を変更してください
 

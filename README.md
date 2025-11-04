@@ -300,13 +300,13 @@ qiime demux summarize \
 
 たとえば、R1のスコアが270bp付近で下がり始めたら、
 
---p-trunc-len-f **270**
+TRUNC_F=**270**
 
 とします。
 
 同様に、R2が220bpあたりで下がるなら、
 
---p-trunc-len-r **220**
+TRUNC_R=**220**
 
 とします。
 
@@ -337,22 +337,42 @@ DADA2処理は少し時間がかかったり、途中で落ちたりする可能
 ```bash
 tmux new -s dada2 -d "
 bash -lc '
+  export master=\"$master\"
   export TRUNC_F=□□□
   export TRUNC_R=□□□
   bash ~/qiime/tools/run_dada2.sh
 '"
 ```
+👀 進行状況の確認
+
+・セッションに入って確認：
+
+「📋」
+```bash
+tmux attach -t dada2
+```
+
+離脱は**Ctrl + b → d**
+
+・ログで追う：
+
+「📋」
+```bash
+tail -f "$master"/results_qiime/dada2_*.log
+```
+
 完了後、自動で以下3つの可視化ファイルが生成されます
 
 📊 出力ファイル一覧：
-| ファイル名                 | 内容         | 次の用途     |
-| --------------------- | ---------- | -------- |
-| `table.qza / qzv`     | ASV出現数テーブル | 多様性解析の基盤 |
-| `rep-seqs.qza / qzv`  | 各ASVの代表配列  | 菌種分類に使用  |
-| `denoising-stats.qzv` | 除去率・品質統計   | 品質確認     |
-
+| ファイル名                                                       | 内容                 | 次の用途        |
+| ----------------------------------------------------------- | ------------------ | ----------- |
+| `results_qiime/table.qza` / `table.qzv`                     | ASV 出現数テーブル        | 多様性解析の基盤    |
+| `results_qiime/rep-seqs.qza` / `rep-seqs.qzv`               | 各 ASV の代表配列        | タキソノミー付与に使用 |
+| `results_qiime/denoising-stats.qza` / `denoising-stats.qzv` | デノイズ統計（除去率・ペア合致など） | 品質確認        |
 
 ---
+
+各qzvファイルを👉 https://view.qiime2.org にドラッグ＆ドロップして確認します。
 
 ## 🧬 STEP 8｜分類（SILVA分類器）
 

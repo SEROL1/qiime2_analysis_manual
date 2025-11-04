@@ -402,7 +402,9 @@ DADA2: 1.30.0 / Rcpp: 1.0.13.1 / RcppParallel: 5.1.9
 qiime feature-classifier classify-sklearn \
   --i-classifier ~/qiime/databases/silva-138.1-nr99-v4-classifier.qza \
   --i-reads "$master/results_qiime/rep-seqs.qza" \
-  --o-classification "$master/results_qiime/taxonomy.qza"
+  --o-classification "$master/results_qiime/taxonomy.qza" \
+  --p-reads-per-batch 50 \
+  --p-n-jobs 1
 ```
 ✅ 出力：
 

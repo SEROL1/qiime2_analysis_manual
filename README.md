@@ -179,12 +179,11 @@ bash ~/qiime/tools/make_manifest.sh
 **同じサンプル名を2行続けて入力してください。**
 
 **例（Excel表示）**
-| sample-id | absolute-filepath                                         | direction |
-| -----------| --------------------------------------------------------- | --------- |
-| 例：NC1    | /home/ishikawa/qiime/raw_data/NC1_S1_L001_R1_001.fastq.gz | forward   |
-| 例：NC1    | /home/ishikawa/qiime/raw_data/NC1_S1_L001_R2_001.fastq.gz | reverse   |
-| 例：HF1    | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R1_001.fastq.gz | forward   |
-| 例：HF1    | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R2_001.fastq.gz | reverse   |
+| sample-id | forward-absolute-filepath                                 | reverse-absolute-filepath                                 |
+| --------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| 例：NC1     | /home/ishikawa/qiime/raw_data/NC1_S1_L001_R1_001.fastq.gz | /home/ishikawa/qiime/raw_data/NC1_S1_L001_R2_001.fastq.gz |
+| 例：HF1     | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R1_001.fastq.gz | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R2_001.fastq.gz |
+
 
 以上のようにsample_idの編集を行った後、**💾上書き保存**をしてください。
 
@@ -192,8 +191,8 @@ bash ~/qiime/tools/make_manifest.sh
 
 「📋」
 ```bash
-sed -i 's/\r$//' $master/manifest/manifest.csv
-sed -i '1s/^\xEF\xBB\xBF//' $master/manifest/manifest.csv
+sed -i 's/\r$//' "$master/manifest/manifest.tsv"
+sed -i '1s/^\xEF\xBB\xBF//' "$master/manifest/manifest.tsv"
 ```
 
 ---

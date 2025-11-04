@@ -395,26 +395,36 @@ DADA2: 1.30.0 / Rcpp: 1.0.13.1 / RcppParallel: 5.1.9
 
 ## 🧬 STEP 8｜分類（SILVA分類器）
 
-目的：代表配列を既知データベース（例：Silva）と照合し、菌種レベルで同定する
+目的：DADA2で得た代表配列を既知データベース（SILVA）と照合し、菌種を分類します。
 
 「📋」
 ```bash
 qiime feature-classifier classify-sklearn \
   --i-classifier ~/qiime/databases/silva-138.1-nr99-v4-classifier.qza \
-  --i-reads $master/results_qiime/rep-seqs.qza \
-  --o-classification $master/results_qiime/taxonomy.qza
+  --i-reads "$master/results_qiime/rep-seqs.qza" \
+  --o-classification "$master/results_qiime/taxonomy.qza"
 ```
 ✅ 出力：
 
 ・taxonomy.qza（分類結果）
 
-これを可視化するために次のSTEPへ。
+分類結果を可視化します👇
+
+「📋」
+```bash
+qiime metadata tabulate \
+  --m-input-file "$master/results_qiime/taxonomy.qza" \
+  --o-visualization "$master/results_qiime/taxonomy.qzv"
+```
+→ taxonomy.qzv を QIIME2 Viewer にドラッグして確認。
+
+**分類された菌群**（例：Firmicutes, Bacteroidetes, Lactobacillus など）が見られます。
 
 ---
 
 ## 🧩 STEP 9｜分類結果の可視化（Taxa Bar Plot）
 
-目的：菌群の構成比を棒グラフとして表示
+目的：分類結果をグループ別の棒グラフで表示し、菌群の構成を比較します。
 
 「📋」
 ```bash
@@ -426,54 +436,98 @@ qiime taxa barplot \
 ```
 
 ✅ 出力：
-・taxa-bar-plots.qzv
+・taxa-bar-plots.qzv（分類棒グラフ）
 
-→ ブラウザで qiime tools view taxa-bar-plots.qzv
+👉 QIIME2 Viewer　で開くと
 
-→ グループごとの菌構成（例：Firmicutes / Bacteroidetes 比など）を確認。
+**グループごとに菌構成の割合**（例：Firmicutes/Bacteroidetes比など）を確認できます。
 
 ---
 
-## 🧠 STEP 10｜多様性解析
+## 🧠 STEP 10｜多様性解析（α・β多様性）
 
-### α多様性
-目的：1サンプル内の多様性（菌の種類の豊かさ）を評価する
+菌の「豊かさ」や「グループ間の違い」を解析するため、**α・β多様性解析**を行います。
+
+DADA2で得られたASV配列をもとに、系統樹を作成して多様性解析を一括実行します。
+
+### 🪴 ① 系統樹の作成
+
+代表配列（rep-seqs.qza）から、系統解析用のツリーを自動で構築します。
 
 「📋」
 ```bash
-qiime diversity alpha \
-  --i-table $master/results_qiime/table.qza \
-  --p-metric shannon \
-  --o-alpha-diversity $master/results_qiime/alpha_shannon.qza
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences "$master/results_qiime/rep-seqs.qza" \
+  --o-alignment "$master/results_qiime/aligned-rep-seqs.qza" \
+  --o-masked-alignment "$master/results_qiime/masked-aligned-rep-seqs.qza" \
+  --o-tree "$master/results_qiime/unrooted-tree.qza" \
+  --o-rooted-tree "$master/results_qiime/rooted-tree.qza"
 ```
-✅ 出力例：
-| 指標                | 意味          |
-| ----------------- | ----------- |
-| Shannon index     | 多様性（種数＋均一性） |
-| Faith’s PD        | 系統的多様性      |
-| Observed features | ASV数（種数の近似） |
 
+✅ 出力：
 
-### β多様性
-目的：サンプル間の構成差を評価（グループ差を可視化）
+・rooted-tree.qza（系統樹データ）
+
+・α・β多様性の計算に使用します。
+
+### 🌿 ② 多様性解析
 
 「📋」
 ```bash
-qiime emperor plot \
-  --i-pcoa "$master/results_qiime/core-metrics-results/bray_curtis_pcoa_results.qza" \
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny "$master/results_qiime/rooted-tree.qza" \
+  --i-table "$master/results_qiime/table.qza" \
+  --p-sampling-depth 10000 \
   --m-metadata-file "$master/metadata/metadata.tsv" \
-  --o-visualization "$master/results_qiime/bray-curtis-emperor.qzv"
+  --output-dir "$master/results_qiime/core-metrics-results"
 ```
 ✅ 出力：
 
-・bray-curtis-emperor.qzv
+・core-metrics-results/ フォルダ内に、以下がまとめて生成されます👇
 
-→ PCoAプロットとしてグループ分離を確認。
+| 出力ファイル                       | 内容                 | 確認方法                |
+| ---------------------------- | ------------------ | ------------------- |
+| shannon_vector.qza           | Shannon指数（多様性）     | view.qiime2.orgで可視化 |
+| faith_pd_vector.qza          | 系統的多様性（Faith’s PD） | 同上                  |
+| bray_curtis_emperor.qzv      | β多様性（PCoAプロット）     | グループ分離の確認           |
+| evenness_vector.qza          | 種の均一性              | 参考指標                |
+| observed_features_vector.qza | ASV数               | 種の豊かさの目安            |
+
+### 📊 ③ 結果の確認
+
+結果は以下のコマンドで一覧できます。
+
+「📋」
+```bash
+ls "$master/results_qiime/core-metrics-results"
+```
+
+出力例：
+```bash
+bray_curtis_emperor.qzv
+shannon_vector.qza
+faith_pd_vector.qza
+observed_features_vector.qza
+evenness_vector.qza
+```
+👉 生成された .qzv ファイルを
+https://view.qiime2.org
+ にドラッグして可視化しましょう。
+
+**💡 補足（どんな結果が見られる？）**
+
+| 指標                | 意味             | 解釈のポイント           |
+| ----------------- | -------------- | ----------------- |
+| Shannon index     | 種の多様性（豊かさ＋均一性） | 値が高いほど多様          |
+| Faith’s PD        | 系統的な多様性        | 系統的に異なる菌が多いほど高い   |
+| Observed features | ASV数           | 実際に検出された種数の近似     |
+| Bray-Curtis PCoA  | 群間の違い          | サンプル間の距離や分離傾向を視覚化 |
+
 
 ---
 
 ## 🧬 STEP 11｜PICRUSt2解析
-目的：16S配列から代謝経路（KEGG Pathway）を予測
+目的：16S配列から、腸内細菌が持つ代謝経路を予測します。
 
 「📋」
 ```bash
@@ -482,15 +536,16 @@ qiime picrust2 full-pipeline \
   --i-seq "$master/results_qiime/rep-seqs.qza" \
   --output-dir "$master/results_picrust2" \
   --p-threads 0
-
 ```
+
 ✅ 出力：
+| 出力ファイル                  | 内容                        |
+| ----------------------- | ------------------------- |
+| `KO_metagenome.qza`     | KEGG遺伝子機能の予測              |
+| `EC_metagenome.qza`     | 酵素（EC番号）ごとの活性予測           |
+| `pathway_abundance.qza` | 代謝経路ごとの量（MetaCyc Pathway） |
+| `pathway_coverage.qza`  | 経路の完全性（Coverage）          |
 
-・EC_metagenome.qza（酵素活性推定）
-
-・pathway_abundance.qza（代謝経路推定）
-
-・KO_metagenome.qza（遺伝子機能推定）
 
 ---
 

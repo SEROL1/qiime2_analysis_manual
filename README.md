@@ -361,6 +361,25 @@ tmux attach -t dada2
 tail -f "$master"/results_qiime/dada2_*.log
 ```
 
+ログで追うと、次のような順序で表示が進みます👇
+
+```bash
+[INFO] 開始: 2025-11-04 17:01:45 env=q2-picrust2-amplicon-2024.5
+[INFO] master=/home/seeei/qiime/test  TRUNC_F=265 TRUNC_R=217  TRIM_F=0 TRIM_R=0
+R version 4.3.3 (2024-02-29)
+Loading required package: Rcpp
+DADA2: 1.30.0 / Rcpp: 1.0.13.1 / RcppParallel: 5.1.9
+2) Filtering
+3) Learning Error Rates
+4) Denoising
+5) Merging paired reads
+6) Constructing sequence table
+7) Removing chimeras
+8) Writing output files
+[INFO] 可視化ファイル生成中...
+[DONE] 終了: 2025-11-04 23:47:18
+```
+
 完了後、自動で以下3つの可視化ファイルが生成されます
 
 📊 出力ファイル一覧：

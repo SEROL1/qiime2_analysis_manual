@@ -323,41 +323,45 @@ ForwardとReverseの重なりが150bp以上残るようにします。
 ```
 マージ＝（Forward:Lf）＋（Reverse:Lr）－253
 ```
+今回は
+
+270＋220－253＝**237**
+
+で、十分マージを残すことができています。
 
 このトリミング長をもとに次のSTEP7での数字を変更してください
 
 ---
 
 ## 🧮 STEP 7｜DADA2によるノイズ除去とASV化
-DADA2処理は数時間〜1日かかるため、**夜間実行**を推奨します。
+DADA2処理は少し時間がかかったり、途中で落ちたりする可能性があるので注意してください。
+
+最短で30分位を見積もっておくといいと思います。
 
 「📋」**□□□を決定したトリミング長に決定してください。**
 ```bash
-tmux new -s dada2 -d \
-  'export master="/home/seeei/qiime/test"; \
-   conda activate q2-picrust2-amplicon-2024.5; \
-   mkdir -p "$master/tmp" "$master/results_qiime"; export TMPDIR="$master/tmp"; \
-   ( time qiime dada2 denoise-paired \
-     --i-demultiplexed-seqs "$master/results_qiime/demux.qza" \
-     --p-trunc-len-f □□□ \
-     --p-trunc-len-r □□□ \
-     --o-table "$master/results_qiime/table.qza" \
-     --o-representative-sequences "$master/results_qiime/rep-seqs.qza" \
-     --o-denoising-stats "$master/results_qiime/denoising-stats.qza" \
-     --p-n-threads 0 --verbose ) 2>&1 | tee "$master/results_qiime/dada2_$(date +%F_%H%M).log"; \
-   qiime feature-table summarize --i-table "$master/results_qiime/table.qza" --o-visualization "$master/results_qiime/table.qzv" --m-sample-metadata-file "$master/metadata/metadata.tsv" || true; \
-   qiime feature-table tabulate-seqs --i-data "$master/results_qiime/rep-seqs.qza" --o-visualization "$master/results_qiime/rep-seqs.qzv" || true; \
-   qiime metadata tabulate --m-input-file "$master/results_qiime/denoising-stats.qza" --o-visualization "$master/results_qiime/denoising-stats.qzv" || true'
-
+tmux new -s dada2 -d "
+bash -lc '
+  export TRUNC_F=□□□
+  export TRUNC_R=□□□
+  bash ~/qiime/tools/run_dada2.sh
+'"
 ```
-この作業は長くて約１日と、とても時間がかかります。
+完了後、自動で以下3つの可視化ファイルが生成されます
 
-可能なら、
+📊 出力ファイル一覧：
+| ファイル名                 | 内容         | 次の用途     |
+| --------------------- | ---------- | -------- |
+| `table.qza / qzv`     | ASV出現数テーブル | 多様性解析の基盤 |
+| `rep-seqs.qza / qzv`  | 各ASVの代表配列  | 菌種分類に使用  |
+| `denoising-stats.qzv` | 除去率・品質統計   | 品質確認     |
+
 
 ---
 
 ## 🧬 STEP 8｜分類（SILVA分類器）
-共通で構築済みの分類器を使用します。  
+
+目的：代表配列を既知データベース（例：Silva）と照合し、菌種レベルで同定する
 
 「📋」
 ```bash
@@ -366,23 +370,40 @@ qiime feature-classifier classify-sklearn \
   --i-reads $master/results_qiime/rep-seqs.qza \
   --o-classification $master/results_qiime/taxonomy.qza
 ```
+✅ 出力：
+
+・taxonomy.qza（分類結果）
+
+これを可視化するために次のSTEPへ。
 
 ---
 
-## 🧩 STEP 9｜分類結果の可視化
+## 🧩 STEP 9｜分類結果の可視化（Taxa Bar Plot）
+
+目的：菌群の構成比を棒グラフとして表示
 
 「📋」
 ```bash
-qiime metadata tabulate \
-  --m-input-file $master/results_qiime/taxonomy.qza \
-  --o-visualization $master/results_qiime/taxonomy.qzv
+qiime taxa barplot \
+  --i-table "$master/results_qiime/table.qza" \
+  --i-taxonomy "$master/results_qiime/taxonomy.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --o-visualization "$master/results_qiime/taxa-bar-plots.qzv"
 ```
+
+✅ 出力：
+・taxa-bar-plots.qzv
+
+→ ブラウザで qiime tools view taxa-bar-plots.qzv
+
+→ グループごとの菌構成（例：Firmicutes / Bacteroidetes 比など）を確認。
 
 ---
 
 ## 🧠 STEP 10｜多様性解析
 
 ### α多様性
+目的：1サンプル内の多様性（菌の種類の豊かさ）を評価する
 
 「📋」
 ```bash
@@ -391,31 +412,51 @@ qiime diversity alpha \
   --p-metric shannon \
   --o-alpha-diversity $master/results_qiime/alpha_shannon.qza
 ```
+✅ 出力例：
+| 指標                | 意味          |
+| ----------------- | ----------- |
+| Shannon index     | 多様性（種数＋均一性） |
+| Faith’s PD        | 系統的多様性      |
+| Observed features | ASV数（種数の近似） |
+
 
 ### β多様性
+目的：サンプル間の構成差を評価（グループ差を可視化）
 
 「📋」
 ```bash
-qiime diversity beta \
-  --i-table $master/results_qiime/table.qza \
-  --p-metric braycurtis \
-  --o-distance-matrix $master/results_qiime/braycurtis.qza
+qiime emperor plot \
+  --i-pcoa "$master/results_qiime/core-metrics-results/bray_curtis_pcoa_results.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --o-visualization "$master/results_qiime/bray-curtis-emperor.qzv"
 ```
+✅ 出力：
+
+・bray-curtis-emperor.qzv
+
+→ PCoAプロットとしてグループ分離を確認。
 
 ---
 
 ## 🧬 STEP 11｜PICRUSt2解析
+目的：16S配列から代謝経路（KEGG Pathway）を予測
 
 「📋」
 ```bash
 qiime picrust2 full-pipeline \
-  --i-table $master/results_qiime/table.qza \
-  --i-seq $master/results_qiime/rep-seqs.qza \
-  --output-dir $master/results_picrust2/ \
-  --p-threads 6 \
-  --p-hsp-method pic \
-  --p-max-nsti 2
+  --i-table "$master/results_qiime/table.qza" \
+  --i-seq "$master/results_qiime/rep-seqs.qza" \
+  --output-dir "$master/results_picrust2" \
+  --p-threads 0
+
 ```
+✅ 出力：
+
+・EC_metagenome.qza（酵素活性推定）
+
+・pathway_abundance.qza（代謝経路推定）
+
+・KO_metagenome.qza（遺伝子機能推定）
 
 ---
 

@@ -418,7 +418,7 @@ qiime metadata tabulate \
   --m-input-file "$master/results_qiime/taxonomy.qza" \
   --o-visualization "$master/results_qiime/taxonomy.qzv"
 ```
-→ taxonomy.qzv を QIIME2 Viewer にドラッグして確認。
+→ taxonomy.qzv を 👉 https://view.qiime2.orgにドラッグして確認。
 
 **分類された菌群**（例：Firmicutes, Bacteroidetes, Lactobacillus など）が見られます。
 
@@ -440,7 +440,7 @@ qiime taxa barplot \
 ✅ 出力：
 ・taxa-bar-plots.qzv（分類棒グラフ）
 
-👉 QIIME2 Viewer　で開くと
+👉 https://view.qiime2.orgで開くと
 
 **グループごとに菌構成の割合**（例：Firmicutes/Bacteroidetes比など）を確認できます。
 

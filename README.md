@@ -85,6 +85,21 @@ C:\Users\ユーザー名\Desktop\FASTQ_2025_10_30
 ├── database/
 ```
 
+```
+~/qiime/自分の判明/
+├── raw_data/
+├── manifest/
+├── metadata/
+├── results_qiime/
+│   ├── results_dada2/       
+│   ├── results_taxonomy/    
+│   └── results_coremetrics/  
+└── results_picrust2/
+    ├── results_pipeline/     
+    ├── results_visualization/
+    └── results_export/       
+```
+
 > ✅ templateは共通構成を保つため削除しないでください。  
 > ✅ 各班は自分のフォルダでのみ解析を行います。
 
@@ -231,13 +246,14 @@ sed -i '1s/^\xEF\xBB\xBF//' "$master/metadata/metadata.tsv"
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
   --input-path $master/manifest/manifest.tsv \
-  --output-path $master/results_qiime/demux.qza \
+  --output-path $master/results_qiime/results_dada2/demux.qza \
   --input-format PairedEndFastqManifestPhred33V2
 ```
+
 ✅ 成功メッセージ
 Imported … as PairedEndFastqManifestPhred33V2 to …/demux.qza
 が出ればOK。
-生成後、results_qiimeに**qzaファイル**が生成されているか確認してください。
+生成後、results_qiime/results_dada2に**qzaファイル**が生成されているか確認してください。
 
 ---
 
@@ -246,8 +262,8 @@ Imported … as PairedEndFastqManifestPhred33V2 to …/demux.qza
 「📋」
 ```bash
 qiime demux summarize \
-  --i-data "$master/results_qiime/demux.qza" \
-  --o-visualization "$master/results_qiime/demux.qzv"
+  --i-data "$master/results_qiime/results_dada2/demux.qza" \
+  --o-visualization "$master/results_qiime/results_dada2/demux.qzv"
 ```
 **生成された qzvファイルを 👉 https://view.qiime2.org にドラッグ＆ドロップして確認します。**
 
@@ -345,15 +361,6 @@ bash -lc '
 ```
 👀 進行状況の確認
 
-・セッションに入って確認：
-
-「📋」
-```bash
-tmux attach -t dada2
-```
-
-離脱は**Ctrl + b → d**
-
 ・ログで追う：
 
 「📋」
@@ -385,9 +392,9 @@ DADA2: 1.30.0 / Rcpp: 1.0.13.1 / RcppParallel: 5.1.9
 📊 出力ファイル一覧：
 | ファイル名                                                       | 内容                 | 次の用途        |
 | ----------------------------------------------------------- | ------------------ | ----------- |
-| `results_qiime/table.qza` / `table.qzv`                     | ASV 出現数テーブル        | 多様性解析の基盤    |
-| `results_qiime/rep-seqs.qza` / `rep-seqs.qzv`               | 各 ASV の代表配列        | タキソノミー付与に使用 |
-| `results_qiime/denoising-stats.qza` / `denoising-stats.qzv` | デノイズ統計（除去率・ペア合致など） | 品質確認        |
+| `results_dada2/table.qza` / `table.qzv`                     | ASV 出現数テーブル        | 多様性解析の基盤    |
+| `results_dada2/rep-seqs.qza` / `rep-seqs.qzv`               | 各 ASV の代表配列        | タキソノミー付与に使用 |
+| `results_dada2/denoising-stats.qza` / `denoising-stats.qzv` | デノイズ統計（除去率・ペア合致など） | 品質確認        |
 
 ---
 
@@ -401,8 +408,8 @@ DADA2: 1.30.0 / Rcpp: 1.0.13.1 / RcppParallel: 5.1.9
 ```bash
 qiime feature-classifier classify-sklearn \
   --i-classifier ~/qiime/databases/silva-138.1-nr99-v4-classifier.qza \
-  --i-reads "$master/results_qiime/rep-seqs.qza" \
-  --o-classification "$master/results_qiime/taxonomy.qza" \
+  --i-reads "$master/results_qiime/results_dada2/rep-seqs.qza" \
+  --o-classification "$master/results_qiime/results_taxonomy/taxonomy.qza" \
   --p-reads-per-batch 50 \
   --p-n-jobs 1
 ```
@@ -415,8 +422,8 @@ qiime feature-classifier classify-sklearn \
 「📋」
 ```bash
 qiime metadata tabulate \
-  --m-input-file "$master/results_qiime/taxonomy.qza" \
-  --o-visualization "$master/results_qiime/taxonomy.qzv"
+  --m-input-file "$master/results_qiime/results_taxonomy/taxonomy.qza" \
+  --o-visualization "$master/results_qiime/results_taxonomy/taxonomy.qzv"
 ```
 → taxonomy.qzv を 👉 https://view.qiime2.orgにドラッグして確認。
 
@@ -431,10 +438,10 @@ qiime metadata tabulate \
 「📋」
 ```bash
 qiime taxa barplot \
-  --i-table "$master/results_qiime/table.qza" \
-  --i-taxonomy "$master/results_qiime/taxonomy.qza" \
+  --i-table "$master/results_qiime/results_dada2/table.qza" \
+  --i-taxonomy "$master/results_qiime/results_taxonomy/taxonomy.qza" \
   --m-metadata-file "$master/metadata/metadata.tsv" \
-  --o-visualization "$master/results_qiime/taxa-bar-plots.qzv"
+  --o-visualization "$master/results_qiime/results_taxonomy/taxa-bar-plots.qzv"
 ```
 
 ✅ 出力：
@@ -459,11 +466,11 @@ DADA2で得られたASV配列をもとに、系統樹を作成して多様性解
 「📋」
 ```bash
 qiime phylogeny align-to-tree-mafft-fasttree \
-  --i-sequences "$master/results_qiime/rep-seqs.qza" \
-  --o-alignment "$master/results_qiime/aligned-rep-seqs.qza" \
-  --o-masked-alignment "$master/results_qiime/masked-aligned-rep-seqs.qza" \
-  --o-tree "$master/results_qiime/unrooted-tree.qza" \
-  --o-rooted-tree "$master/results_qiime/rooted-tree.qza"
+  --i-sequences "$master/results_qiime/results_dada2/rep-seqs.qza" \
+  --o-alignment "$master/results_qiime/results_coremetrics/aligned-rep-seqs.qza" \
+  --o-masked-alignment "$master/results_qiime/results_coremetrics/masked-aligned-rep-seqs.qza" \
+  --o-tree "$master/results_qiime/results_coremetrics/unrooted-tree.qza" \
+  --o-rooted-tree "$master/results_qiime/results_coremetrics/rooted-tree.qza"
 ```
 
 ✅ 出力：
@@ -477,11 +484,11 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 「📋」
 ```bash
 qiime diversity core-metrics-phylogenetic \
-  --i-phylogeny "$master/results_qiime/rooted-tree.qza" \
-  --i-table "$master/results_qiime/table.qza" \
+  --i-phylogeny "$master/results_qiime/results_coremetrics/rooted-tree.qza" \
+  --i-table "$master/results_qiime/results_dada2/table.qza" \
   --p-sampling-depth 10000 \
   --m-metadata-file "$master/metadata/metadata.tsv" \
-  --output-dir "$master/results_qiime/core-metrics-results"
+  --output-dir "$master/results_qiime/results_coremetrics/core-metrics-results"
 ```
 ✅ 出力：
 
@@ -534,10 +541,10 @@ https://view.qiime2.org
 「📋」
 ```bash
 qiime picrust2 full-pipeline \
-  --i-table "$master/results_qiime/table.qza" \
-  --i-seq "$master/results_qiime/rep-seqs.qza" \
-  --output-dir "$master/results_picrust2" \
-  --p-threads 0
+  --i-table "$master/results_qiime/results_dada2/table.qza" \
+  --i-seq "$master/results_qiime/results_dada2/rep-seqs.qza" \
+  --p-threads 1 \
+  --output-dir "$master/results_picrust2/results_pipeline"
 ```
 
 ✅ 出力：
@@ -551,9 +558,153 @@ qiime picrust2 full-pipeline \
 
 ---
 
-## 🌈 STEP 12｜可視化
-`results_qiime/` および `results_picrust2/` 内の `.qzv` ファイルを  
-👉 https://view.qiime2.org にドラッグして開きます。
+## 📈 STEP 12｜相対値変換とエクスポート（KEGG/EC/Pathway）
+
+STEP11（PICRUSt2解析）で生成された各ファイル用いて
+
+**相対値（割合データ）に変換し、表形式で出力する作業**です。
+
+「📋」（KEGG KO）
+```bash
+qiime feature-table relative-frequency \
+  --i-table "$master/results_picrust2/results_pipeline/KO_metagenome.qza" \
+  --o-relative-frequency-table "$master/results_picrust2/results_visualization/KO_metagenome_rel.qza"
+
+qiime tools export \
+  --input-path "$master/results_picrust2/results_visualization/KO_metagenome_rel.qza" \
+  --output-path "$master/results_picrust2/results_export/export_KO_rel"
+
+biom convert \
+  -i "$master/results_picrust2/results_export/export_KO_rel/feature-table.biom" \
+  -o "$master/results_picrust2/results_export/KO_metagenome_rel.tsv" \
+  --to-tsv
+```
+
+
+「📋」（EC）
+```bash
+qiime feature-table relative-frequency \
+  --i-table "$master/results_picrust2/results_pipeline/EC_metagenome.qza" \
+  --o-relative-frequency-table "$master/results_picrust2/results_visualization/EC_metagenome_rel.qza"
+
+qiime tools export \
+  --input-path "$master/results_picrust2/results_visualization/EC_metagenome_rel.qza" \
+  --output-path "$master/results_picrust2/results_export/export_EC_rel"
+
+biom convert \
+  -i "$master/results_picrust2/results_export/export_EC_rel/feature-table.biom" \
+  -o "$master/results_picrust2/results_export/EC_metagenome_rel.tsv" \
+  --to-tsv
+```
+
+
+「📋」（Pathway）
+```bash
+qiime feature-table relative-frequency \
+  --i-table "$master/results_picrust2/results_pipeline/pathway_abundance.qza" \
+  --o-relative-frequency-table "$master/results_picrust2/results_visualization/pathway_abundance_rel.qza"
+
+qiime tools export \
+  --input-path "$master/results_picrust2/results_visualization/pathway_abundance_rel.qza" \
+  --output-path "$master/results_picrust2/results_export/export_pathway_rel"
+
+biom convert \
+  -i "$master/results_picrust2/results_export/export_pathway_rel/feature-table.biom" \
+  -o "$master/results_picrust2/results_export/pathway_abundance_rel.tsv" \
+  --to-tsv
+```
+
+## 📈 STEP 13｜グラフ化と解析（KEGG / EC / Pathway
+
+**💡 目的**
+
+STEP12で作成した .tsv ファイルは、
+各サンプルごとの「機能（KEGG・EC・Pathway）の割合」が整理されたデータです。
+
+ここではそのデータを使って、
+**グループごとの差・特徴・相関** をわかりやすく可視化・解析していきます。
+
+**🧾 使うファイル**
+| フォルダ                 | ファイル名                       | 内容          |
+| -------------------- | --------------------------- | ----------- |
+| `export_KO_rel`      | `KO_metagenome_rel.tsv`     | KEGG遺伝子の相対量 |
+| `export_EC_rel`      | `EC_metagenome_rel.tsv`     | 酵素番号の相対量    |
+| `export_pathway_rel` | `pathway_abundance_rel.tsv` | 代謝経路の相対量    |
+
+これらをExcelなどで開くと、
+行＝機能名、列＝サンプル名 になっています。
+
+**🧠 解析でできること（例）**
+| 解析内容                            | 使用ソフト                          | 目的・例               |
+| ------------------------------- | ------------------------------ | ------------------ |
+| **① グループごとの平均・差分比較**            | Excel / R / GraphPad           | 例：RBR群とHF群で多い経路の比較 |
+| **② 経路名の付け直し（MetaCyc ID → 名前）** | Excel / KEGG Mapper            | 結果を読みやすくするための翻訳    |
+| **③ 主成分分析（PCA）やクラスタリング**        | R（prcomp, ggplot2）             | 各群の傾向を図で確認         |
+| **④ 相関解析（スピアマン / ピアソン）**        | R / Excel                      | 例：胆汁酸量や血中脂質との関連を見る |
+| **⑤ 棒グラフ・ヒートマップ作成**             | Excel / GraphPad / R（pheatmap） | 発表・論文用の見やすい図を作成    |
+
+**📊 グループ平均を出してみる（Excel）**
+
+1.pathway_abundance_rel.tsv を開く
+
+2.グループごと（例：NC群・HF群・RBR群）のサンプル列を選択
+
+3.平均値関数 =AVERAGE(範囲) で平均を算出
+
+4.差分を計算して「増加」「減少」を判断
+
+→ 値の大きい経路が「活発な代謝経路」を示します。
+
+**RStudioによる可視化（初めてのRの使い方つき）**
+
+**💡目的**
+
+STEP12で作成した 相対値変換データ（例：pathway_abundance_rel.tsv） を、
+
+RStudioを使って図としてわかりやすく可視化します。
+
+ここでは例として「ヒートマップ」を作成します。
+
+**🪟 1. RStudioの起動**
+
+Ubuntuターミナルで以下を入力します。
+
+「📋」
+```bash
+rstudio
+```
+GUI（グラフィカル画面）が起動したらOKです。
+
+**📂 2. 作業フォルダを設定**
+
+RStudioが起動したら、左下の Console に次のコードを入力します。
+
+これにより、解析結果のあるフォルダを作業場所に指定します。
+
+「📋」
+```bash
+setwd("/home/seeei/qiime/test/results_picrust2/export_pathway_rel/")
+```
+
+**🎨 3. ヒートマップの作成**
+
+RStudioの Console に以下を入力します。
+
+「📋」
+```bash
+library(pheatmap)
+data <- read.table("pathway_abundance_rel.tsv", sep="\t", header=TRUE, row.names=1)
+pheatmap(data, scale="row", clustering_distance_rows="correlation")
+```
+
+**💾 5. 図の保存**
+
+ヒートマップを画像として保存する場合は：
+
+Plots ペイン右上の「Export」→「Save as Image」
+→ PNG / PDF / TIFF などの形式を選択可能です。
+
+
 
 ---
 

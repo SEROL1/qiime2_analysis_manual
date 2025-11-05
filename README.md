@@ -359,33 +359,19 @@ bash -lc '
   bash ~/qiime/tools/run_dada2.sh
 '" \; attach
 ```
-👀 進行状況の確認
+実行後は自動的に進捗画面に移行し
 
-・ログで追う：
+**リアルタイムで進捗（Filtering / Learning Error Rates など）** が表示されます。👀
 
-「📋」
-```bash
-tail -f "$master"/results_qiime/dada2_*.log
-```
+また、解析途中でも、一分ごとに[PROGRESS]が表示されるため、基本的には放置で大丈夫です。
 
-ログで追うと、次のような順序で表示が進みます👇
+この解析には**10分以上**時間がかかることが予想されます。
 
-```bash
-[INFO] 開始: 2025-11-04 17:01:45 env=q2-picrust2-amplicon-2024.5
-[INFO] master=/home/seeei/qiime/test  TRUNC_F=265 TRUNC_R=217  TRIM_F=0 TRIM_R=0
-R version 4.3.3 (2024-02-29)
-Loading required package: Rcpp
-DADA2: 1.30.0 / Rcpp: 1.0.13.1 / RcppParallel: 5.1.9
-2) Filtering
-3) Learning Error Rates
-4) Denoising
-5) Merging paired reads
-6) Constructing sequence table
-7) Removing chimeras
-8) Writing output files
-[INFO] 可視化ファイル生成中...
-[DONE] 終了: 2025-11-04 23:47:18
-```
+5分以上[PROGRESS]が表示されなかった場合は、処理が停止またはエラーで落ちた可能性ありです。
+
+その場合、[ERROR] 異常終了と出てくると思うので、再度上のコードを実施してみてください。
+
+正常に終了すると[DONE] 正常終了と表示されるはずです。
 
 完了後、自動で以下3つの可視化ファイルが生成されます
 

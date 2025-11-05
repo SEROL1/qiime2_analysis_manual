@@ -351,13 +351,13 @@ DADA2処理は少し時間がかかったり、途中で落ちたりする可能
 
 「📋」**□□□を決定したトリミング長に決定してください。**
 ```bash
-tmux new -s dada2 -d "
+tmux new -s dada2 "
 bash -lc '
   export master=\"$master\"
   export TRUNC_F=□□□
   export TRUNC_R=□□□
   bash ~/qiime/tools/run_dada2.sh
-'"
+'" \; attach
 ```
 👀 進行状況の確認
 

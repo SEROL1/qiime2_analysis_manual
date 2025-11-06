@@ -400,6 +400,9 @@ bash -lc '
 | **rep-seqs.qzv**        | 「**Overview → Sequence Lengths**」          | 代表配列の長さ分布   | 🔹 多くが **250〜300 bp前後** ならOK（V4領域の場合）<br>🔹 短すぎる／長すぎる配列が多い場合 → トリミング設定を見直す           |
 | **denoising-stats.qzv** | 「**Overview → Interactive Sample Detail**」 | 各サンプルでの除去率  | 🔹 **non-chimeric（最終列）** が数千以上ならOK<br>🔹 途中で極端に減っている（inputに対し非キメラが10％未満）サンプル → 品質要確認 |
 
+そして、**table.qzv** の**Minimum frequency**は**STEP10で↓の□□□を調整する際に用います。**
+
+　`--p-sampling-depth □□□`
 
 ## 🧬 STEP 8｜分類（SILVA分類器）
 
@@ -456,6 +459,17 @@ qiime taxa barplot \
 
 上部のLevelを1～7で変えることで**より細かい菌構成の比較**ができると思います。
 
+| Level   | 英語名     | 日本語名 | 例                |
+| ------- | ------- | ---- | ---------------- |
+| 1 | Kingdom | 界    | Bacteria         |
+| 2 | Phylum  | 門    | Firmicutes       |
+| 3 | Class   | 綱    | Clostridia       |
+| 4 | Order   | 目    | Lachnospirales   |
+| 5 | Family  | 科    | Lachnospiraceae  |
+| 6 | Genus   | 属    | Blautia          |
+| 7 | Species | 種    | Blautia wexlerae |
+
+
 また、exportでCSVを出し、Excelで調整することも可能です。
 
 ---
@@ -464,9 +478,9 @@ qiime taxa barplot \
 
 ### 目的：菌の「豊かさ」や「グループ間の違い」を解析するため、α・β多様性解析を行います。
 
-DADA2で得られたASV配列をもとに、**①系統樹を作成 → ②多様性**を一括解析します。
+DADA2で得られたASV配列をもとに、**系統樹を作成 → α・β多様性**を解析します。
 
-### 🪴 ① 系統樹の作成
+### 🪴 系統樹の作成
 
 代表配列（rep-seqs.qza）から、系統解析用のツリーを自動で構築します。
 
@@ -486,49 +500,202 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 
 →**α・β多様性の計算**に使用します。
 
-### 🌿 ② 多様性解析
+### 🌿 多様性解析
+
+## 🧩 概要
+多様性解析は以下の2つに分かれます。
+| 種類       | 内容               | depthの決め方                                |
+| -------- | ---------------- | ---------------------------------------- |
+| **α多様性** | 各サンプル内の菌の豊かさ・均一性 | α-rarefactionで飽和を確認して固定depthを設定（例：10000） |
+| **β多様性** | グループ間の菌叢構造の違い    | STEP7で確認したMinimum frequencyを使用（例：3300）   |
+
+#### α多様性解析
+**①飽和深度の確認（α-rarefaction）**
+
+α多様性指標がどのdepthで安定（飽和）するかを確認します。
+
+「📋」
+```bash
+qiime diversity alpha-rarefaction \
+  --i-table "$master/results_qiime/results_dada2/table.qza" \
+  --i-phylogeny "$master/results_qiime/results_coremetrics/rooted-tree.qza" \
+  --p-max-depth 10000 \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --o-visualization "$master/results_qiime/results_coremetrics/alpha_rarefaction_10000.qzv"
+```
+✅ 出力
+
+`/results_coremetrics/alpha_rarefaction_10000.qzv`
+
+　→👉https://view.qiime2.org　で確認し、
+
+ **ShannonやFaith PDが横ばいになるdepth**を基準に以降の解析depthを決定します。
+ 
+---
+
+**② 多様性指数の算出（固定depth）**
+
+飽和カーブで得たdepthをもとに、α多様性指標を一括算出します。
+
+depthを下に、以下の□□□の変更をお願いします。
+
+例：`--p-sampling-depth 1000`
 
 「📋」
 ```bash
 qiime diversity core-metrics-phylogenetic \
   --i-phylogeny "$master/results_qiime/results_coremetrics/rooted-tree.qza" \
   --i-table "$master/results_qiime/results_dada2/table.qza" \
-  --p-sampling-depth 10000 \
+  --p-sampling-depth □□□ \
   --m-metadata-file "$master/metadata/metadata.tsv" \
-  --output-dir "$master/results_qiime/results_coremetrics/core-metrics-results"
+  --output-dir "$master/results_qiime/results_coremetrics/alpha_pack" && \
+cd "$master/results_qiime/results_coremetrics/alpha_pack" && \
+rm -f *_distance_matrix.qza *_pcoa_results.qza *_emperor.qzv
 ```
-✅ 出力：
 
-・core-metrics-results/ フォルダ内に、以下がまとめて生成されます👇
+✅ 出力（主要ファイル）
+```
+alpha_pack/
+├─ shannon_vector.qza
+├─ faith_pd_vector.qza
+├─ observed_features_vector.qza
+└─ evenness_vector.qza
+```
 
-| 出力ファイル                         | 内容                     | QIIME2 Viewで見る場所             |
-| ------------------------------ | ---------------------- | ---------------------------- |
-| `shannon_vector.qza`           | **Shannon指数（α多様性）**    | 「Data → Histogram」などで値の分布を確認 |
-| `faith_pd_vector.qza`          | **Faith’s PD（系統的多様性）** | 同様に各グループの多様性を比較              |
-| `observed_features_vector.qza` | **ASV数（検出種数）**         | Groupごとの豊かさの比較               |
-| `evenness_vector.qza`          | **均一性（Evenness）**      | 種のバランスの参考値                   |
-| `bray_curtis_emperor.qzv`      | **β多様性（PCoAプロット）**     | 「3Dプロット」で群間の分離傾向を確認          |
+**③ 可視化・統計解析（α多様性）**
 
-### 📊 ③ 結果の確認
+ここでは、**各グループ間でα多様性に有意差があるか**を検定します。
 
-結果は以下のコマンドで一覧できます。
+まず、結果格納用フォルダを作成します。
 
 「📋」
 ```bash
-ls "$master/results_qiime/core-metrics-results"
+mkdir -p "$master/results_qiime/results_coremetrics/alpha"
 ```
 
-出力例：
+**🔹 可視化（index）**
+
+「📋」
 ```bash
-bray_curtis_emperor.qzv
-shannon_vector.qza
-faith_pd_vector.qza
-observed_features_vector.qza
-evenness_vector.qza
+for f in shannon faith_pd observed_features evenness; do
+  qiime metadata tabulate \
+    --m-input-file "$master/results_qiime/results_coremetrics/alpha_pack/${f}_vector.qza" \
+    --o-visualization "$master/results_qiime/results_coremetrics/alpha/${f}_index.qzv"
+done
 ```
-👉 生成された .qzv ファイルを
-https://view.qiime2.org
- にドラッグして可視化しましょう。
+
+✅ 出力例
+
+```bash
+alpha/
+├─ shannon_index.qzv
+├─ faith_pd_index.qzv
+├─ observed_features_index.qzv
+└─ evenness_index.qzv
+```
+👉 https://view.qiime2.orgで開くと、各サンプルのα多様性値が確認できます。
+
+**🔹 統計解析（group significance）**
+
+各群間で有意差を検定します（Kruskal-Wallis法）。
+
+「📋」
+```bash
+for f in shannon faith_pd observed_features evenness; do
+  qiime diversity alpha-group-significance \
+    --i-alpha-diversity "$master/results_qiime/results_coremetrics/alpha_pack/${f}_vector.qza" \
+    --m-metadata-file "$master/metadata/metadata.tsv" \
+    --o-visualization "$master/results_qiime/results_coremetrics/alpha/${f}_significance.qzv"
+done
+```
+
+✅ 出力例
+
+```
+alpha/
+├─ shannon_significance.qzv
+├─ faith_pd_significance.qzv
+├─ observed_features_significance.qzv
+└─ evenness_significance.qzv
+```
+👉 qvzファイルを　https://view.qiime2.org
+
+**📈 確認ポイント**
+
+・H値・p-value を確認（p < 0.05 で有意差あり）
+
+・下部の _pairwise comparison_ で群間差を詳細に確認可能
+
+---
+
+#### β多様性解析
+
+**① 群間差の解析（core-metrics）**
+
+STEP7で**table.qzv** の**Minimum frequency**で確認した数値を参考に**以下の□□□の数値を決定**します。
+
+例えば、Minimum frequency＝**3349**の場合、
+**`--p-sampling-depth 3349`**
+
+「📋」
+```bash
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny "$master/results_qiime/results_coremetrics/rooted-tree.qza" \
+  --i-table "$master/results_qiime/results_dada2/table.qza" \
+  --p-sampling-depth □□□ \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --output-dir "$master/results_qiime/results_coremetrics/beta"
+```
+
+✅ 出力
+
+```bash
+beta/
+├─ bray_curtis_emperor.qzv
+├─ weighted_unifrac_emperor.qzv
+├─ unweighted_unifrac_emperor.qzv
+├─ *_distance_matrix.qza
+└─ *_pcoa_results.qza
+```
+
+👉 qvzファイルを　https://view.qiime2.org　で開くと、
+
+群間の分離が明瞭なほど、菌叢構造に違いがあると判断できます。
+
+---
+
+**② 統計解析（群間差の有意性）**
+
+各群間のβ多様性差を PERMANOVA で検定します。
+
+「📋」
+```bash
+for f in bray_curtis weighted_unifrac unweighted_unifrac; do
+  qiime diversity beta-group-significance \
+    --i-distance-matrix "$master/results_qiime/results_coremetrics/beta/${f}_distance_matrix.qza" \
+    --m-metadata-file "$master/metadata/metadata.tsv" \
+    --m-metadata-column Group \
+    --p-method permanova \
+    --o-visualization "$master/results_qiime/results_coremetrics/beta/${f}_significance.qzv"
+done
+```
+
+✅ 出力
+```bash
+beta/
+├─ bray_curtis_significance.qzv
+├─ weighted_unifrac_significance.qzv
+└─ unweighted_unifrac_significance.qzv
+```
+
+👉 qvzファイルを　https://view.qiime2.org
+
+**📊 確認ポイント**
+
+・pseudo-F値と p-value を確認（p < 0.05 で有意差あり）
+
+・分離傾向が見られたβプロットとの整合性もチェック
+
 
 **💡 補足（どんな結果が見られる？）**
 
@@ -539,6 +706,9 @@ https://view.qiime2.org
 | Observed features | ASV数           | 実際に検出された種数の近似     |
 | Bray-Curtis PCoA  | 群間の違い          | サンプル間の距離や分離傾向を視覚化 |
 
+>💬 ポイント：
+>群間の傾向を見る場合は PCoA プロット（β多様性）を、
+>群内の多様さを比較する場合は Shannon指数（α多様性）を確認します。
 
 ---
 

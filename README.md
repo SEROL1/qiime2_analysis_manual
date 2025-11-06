@@ -502,12 +502,23 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 
 ### 🌿 多様性解析
 
-## 🧩 概要
+#### 🧩 概要
 多様性解析は以下の2つに分かれます。
 | 種類       | 内容               | depthの決め方                                |
 | -------- | ---------------- | ---------------------------------------- |
 | **α多様性** | 各サンプル内の菌の豊かさ・均一性 | α-rarefactionで飽和を確認して固定depthを設定（例：10000） |
 | **β多様性** | グループ間の菌叢構造の違い    | STEP7で確認したMinimum frequencyを使用（例：3300）   |
+α多様性解析は
+
+**飽和深度の確認→解析→結果可視化→統計解析**
+
+β多様性解析は
+
+**解析→結果可視化→統計解析**
+
+で進むため、👉 https://view.qiime2.org　で見るのは
+
+**可視化後→確認程度　　統計解析後→解析結果**　がいいと思います。
 
 #### α多様性解析
 **①飽和深度の確認（α-rarefaction）**
@@ -519,13 +530,13 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 qiime diversity alpha-rarefaction \
   --i-table "$master/results_qiime/results_dada2/table.qza" \
   --i-phylogeny "$master/results_qiime/results_coremetrics/rooted-tree.qza" \
-  --p-max-depth 10000 \
+  --p-max-depth 8343 \
   --m-metadata-file "$master/metadata/metadata.tsv" \
-  --o-visualization "$master/results_qiime/results_coremetrics/alpha_rarefaction_10000.qzv"
+  --o-visualization "$master/results_qiime/results_coremetrics/alpha_rarefaction.qzv"
 ```
 ✅ 出力
 
-`/results_coremetrics/alpha_rarefaction_10000.qzv`
+`/results_coremetrics/alpha_rarefaction.qzv`
 
 　→👉https://view.qiime2.org　で確認し、
 
@@ -658,7 +669,7 @@ beta/
 └─ *_pcoa_results.qza
 ```
 
-👉 qvzファイルを　https://view.qiime2.org　で開くと、
+👉 ~emperor.qvzを　https://view.qiime2.org　で開くと、
 
 群間の分離が明瞭なほど、菌叢構造に違いがあると判断できます。
 

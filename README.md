@@ -654,13 +654,6 @@ alpha/
 
 **① 群間差の解析（core-metrics）**
 
-まず、結果格納用フォルダを作成します。
-
-「📋」
-```bash
-mkdir -p "$master/results_qiime/results_coremetrics/beta"
-```
-
 STEP7で**table.qzv** の**Minimum frequency**で確認した数値を参考に**以下の□□□の数値を決定**します。
 
 例えば、Minimum frequency＝**3349**の場合、

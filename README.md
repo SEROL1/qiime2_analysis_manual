@@ -765,6 +765,11 @@ mkdir -p "$master/results_qiime/results_ancom"
 
 「📋」
 ```bash
+LEVEL=□
+```
+
+「📋」
+```bash
 qiime taxa collapse \
   --i-table "$master/results_qiime/results_dada2/table.qza" \
   --i-taxonomy "$master/results_qiime/results_taxonomy/taxonomy.qza" \
@@ -778,9 +783,10 @@ qiime composition ancom \
   --m-metadata-file "$master/metadata/metadata.tsv" \
   --m-metadata-column Group \
   --o-visualization "$master/results_qiime/results_ancom/ancom_level${LEVEL}.qzv"
-
-LEVEL=□
 ```
+
+**解析を行うLevelを変更したい場合は、Level=の指定から行えばできます。**
+
 ✅ 出力
 ```
 results_ancom/
@@ -809,11 +815,25 @@ https://view.qiime2.org にドラッグして確認します。
 ---
 
 ## 🧬 STEP 12｜PICRUSt2解析
-目的：16S配列から、腸内細菌が持つ代謝経路を予測します。
+### 🎯 目的
+PICRUSt2解析では、メタゲノム解析で得た配列情報を下に
+
+**16S配列から、腸内細菌が持つ代謝経路やその機能性を予測します。**
+
+---
+
+#### ①PICRUSt2解析の出力
+
+DADA2で得られたASVテーブルと代表配列をもとに、KEGGやMetaCyc経路の機能予測を行います。
+
+以下のコードで最初の出力を行いますが、
+
+この段階も**時間がかかることが予想されます**ので注意してください。
+
 
 「📋」
 ```bash
-qiime picrust2 full-pipeline \
+qiime picrust2 full-pipeline \ 
   --i-table "$master/results_qiime/results_dada2/table.qza" \
   --i-seq "$master/results_qiime/results_dada2/rep-seqs.qza" \
   --p-threads 1 \
@@ -828,10 +848,203 @@ qiime picrust2 full-pipeline \
 | `pathway_abundance.qza` | 代謝経路ごとの量（MetaCyc Pathway） |
 | `pathway_coverage.qza`  | 経路の完全性（Coverage）          |
 
+---
+
+#### ②機能量の統計解析（群間比較）
+
+予測された代謝経路（pathway_abundance.qza）をもとに、**群間での有意差を検定**します。
+
+ここでは、qiime composition プラグインを用いたANCOM法で、**群間で多い経路**を抽出します。
+
+「📋」
+```bash
+mkdir -p "$master/results_picrust2/results_visualization/statistics"
+
+qiime composition add-pseudocount \
+  --i-table "$master/results_picrust2/results_pipeline/pathway_abundance.qza" \
+  --o-composition-table "$master/results_picrust2/results_visualization/statistics/pathway_comp.qza"
+
+qiime composition ancom \
+  --i-table "$master/results_picrust2/results_visualization/statistics/pathway_comp.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --m-metadata-column Group \
+  --o-visualization "$master/results_picrust2/results_visualization/statistics/ancom_pathway.qzv"
+```
+✅ 出力：
+```
+results_visualization/statistics/
+├─ pathway_comp.qza
+└─ ancom_pathway.qzv
+```
+
+👉 ancom_pathway.qzv を [QIIME2 View](https://view.qiime2.org )
+
+ にドラッグして、群間で有意差のある代謝経路（Reject=Trueの行）を確認します。
+
+ ---
+
+#### ③主成分分析（PCAによる群間構造の可視化）
+機能プロファイル全体の傾向を把握するため、**主成分分析（PCA）**　を行います。
+
+「📋」
+```bash
+OUT="$master/results_picrust2/results_visualization/pca"
+METRIC=braycurtis   
+mkdir -p "$OUT" && \
+
+qiime feature-table relative-frequency \
+  --i-table "$master/results_picrust2/results_pipeline/pathway_abundance.qza" \
+  --o-relative-frequency-table "$OUT/pathway_rel.qza" && \
+qiime diversity beta \
+  --i-table "$OUT/pathway_rel.qza" \
+  --p-metric $METRIC \
+  --o-distance-matrix "$OUT/pathway_${METRIC}_dm.qza" && \
+qiime diversity pcoa \
+  --i-distance-matrix "$OUT/pathway_${METRIC}_dm.qza" \
+  --o-pcoa "$OUT/pathway_${METRIC}_pcoa.qza" && \
+qiime emperor plot \
+  --i-pcoa "$OUT/pathway_${METRIC}_pcoa.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --o-visualization "$OUT/pathway_${METRIC}_emperor.qzv"
+```
+✅ 出力フォルダ構成：
+```
+results_visualization/pca/
+├─ pathway_rel.qza                # 相対化テーブル
+├─ pathway_braycurtis_dm.qza      # 距離行列（Bray-Curtis）
+├─ pathway_braycurtis_pcoa.qza    # 主成分分析結果
+└─ pathway_braycurtis_emperor.qzv # 3D可視化（QIIME2 Viewで確認）
+```
+👉 pathway_braycurtis_emperor.qzv を
+https://view.qiime2.org
+ にドラッグ＆ドロップして確認します。
+
+**🔍 解析結果の見方**
+| 主成分      | 内容           | 解釈のポイント                   |
+| -------- | ------------ | ------------------------- |
+| **PC1**  | 最も大きな変動要因    | 群間で明確な分離が見られれば、代謝傾向の違いを示す |
+| **PC2**  | 次に大きな変動要因    | 群内のばらつきや副次的な傾向を反映         |
+| **点の距離** | サンプル間の機能的類似度 | 近い点ほど代謝経路構成が似ている          |
+
+**💡 ワンポイント**
+
+・デフォルトでは Bray–Curtis距離を使用（一般的で安定的）
+
+　→ METRIC= を変更すれば、他の距離指標も試せます（例：jaccard、euclidean）
+
+・群間が明確に分かれる場合、その差を生む代謝経路はSTEP12②（ANCOM）で確認可能です。
 
 ---
 
-## 📈 STEP 13｜相対値変換とエクスポート（KEGG/EC/Pathway）
+## 📈 STEP 13｜機能の可視化＆エクスポート
+
+### 🎯 目的
+PICRUSt2 の結果を、グループ比較しやすい形に整形し、
+図（ヒートマップ）と外部ソフト向けTSVを作ります。
+
+---
+
+#### ① 前処理：相対化＆グループ平均テーブルの作成
+
+各サンプルの値を相対化し、metadata.tsv の Group 列で平均（mean-ceiling）を取ってグループ代表にします。
+
+「📋」
+```bash
+OUTV="$master/results_picrust2/results_visualization"
+OUTE="$master/results_picrust2/results_export"
+mkdir -p "$OUTV/barplot" "$OUTE"
+
+# 相対化（各サンプルで合計=1）
+qiime feature-table relative-frequency \
+  --i-table "$master/results_picrust2/results_pipeline/pathway_abundance.qza" \
+  --o-relative-frequency-table "$OUTV/barplot/pathway_abundance_rel.qza"
+
+# Group列でグループ平均（代表）テーブル作成
+qiime feature-table group \
+  --i-table "$OUTV/barplot/pathway_abundance_rel.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --m-metadata-column Group \
+  --p-mode mean-ceiling \
+  --o-grouped-table "$OUTV/barplot/pathway_by_group_rel.qza"
+
+# サマリー（行列サイズや各グループ合計のチェック用）
+qiime feature-table summarize \
+  --i-table "$OUTV/barplot/pathway_by_group_rel.qza" \
+  --o-visualization "$OUTV/barplot/pathway_by_group_rel_summary.qzv"
+```
+
+👉 pathway_by_group_rel_summary.qzv を
+https://view.qiime2.org
+ にドラッグ＆ドロップして確認します。
+
+ ---
+
+#### ② 可視化：上位パスウェイのヒートマップ
+
+全部載せると見づらいので、**上位だけ**で綺麗な図にします。
+
+閾値で切る方法がシンプルです（例：全体合計の0.1%以上）。
+
+「📋」
+```bash
+# 低頻度パスウェイを除外（合計 0.1% 未満をカット）
+# ※ 相対化済みでも機能します。閾値はデータに合わせて調整してOK（例: 0.005 など）
+qiime feature-table filter-features \
+  --i-table "$OUTV/barplot/pathway_by_group_rel.qza" \
+  --p-min-frequency 0.001 \
+  --o-filtered-table "$OUTV/barplot/pathway_by_group_rel_top.qza"
+
+# ヒートマップ（グループ比較の俯瞰図）
+qiime feature-table heatmap \
+  --i-table "$OUTV/barplot/pathway_by_group_rel_top.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --m-metadata-column Group \
+  --o-visualization "$OUTV/barplot/pathway_by_group_heatmap.qzv"
+```
+
+👉 pathway_by_group_heatmap.qzv を
+https://view.qiime2.org
+ にドラッグ＆ドロップして確認します。
+
+**濃いマスが多いグループ＝その経路が豊富なグループ**です。
+
+>注：Taxa Bar Plot は分類（SILVA）専用なので、パスウェイはヒートマップが扱いやすいです。
+>棒グラフが必要なら、このあとTSVへエクスポートしてExcel/GraphPad/Rで描くのが早いです。
+
+---
+
+#### ③ エクスポート：TSVで持ち出し（論文化・学会図用）
+
+グループ平均（相対量）テーブルをTSVに変換します。
+
+「📋」
+```bash
+# BIOMをエクスポート
+qiime tools export \
+  --input-path "$OUTV/barplot/pathway_by_group_rel.qza" \
+  --output-path "$OUTE/pathway_by_group_rel_biom"
+
+# BIOM → TSV へ変換
+biom convert \
+  -i "$OUTE/pathway_by_group_rel_biom/feature-table.biom" \
+  -o "$OUTE/pathway_by_group_rel.tsv" \
+  --to-tsv
+
+# 参考：上位だけのテーブルも出しておくと便利
+qiime tools export \
+  --input-path "$OUTV/barplot/pathway_by_group_rel_top.qza" \
+  --output-path "$OUTE/pathway_by_group_rel_top_biom"
+
+biom convert \
+  -i "$OUTE/pathway_by_group_rel_top_biom/feature-table.biom" \
+  -o "$OUTE/pathway_by_group_rel_top.tsv" \
+  --to-tsv
+```
+👉 results_export/pathway_by_group_rel.tsv をExcel/GraphPad/Rに読み込み、
+上位20〜30経路の棒グラフを描くと発表映えします。
+
+---
+
 
 STEP11（PICRUSt2解析）で生成された各ファイル用いて
 
@@ -887,9 +1100,7 @@ biom convert \
   --to-tsv
 ```
 
-## 📈 STEP 13｜グラフ化と解析（KEGG / EC / Pathway
 
-**💡 目的**
 
 STEP12で作成した .tsv ファイルは、
 各サンプルごとの「機能（KEGG・EC・Pathway）の割合」が整理されたデータです。

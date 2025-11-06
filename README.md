@@ -400,9 +400,15 @@ bash -lc '
 | **rep-seqs.qzv**        | 「**Overview → Sequence Lengths**」          | 代表配列の長さ分布   | 🔹 多くが **250〜300 bp前後** ならOK（V4領域の場合）<br>🔹 短すぎる／長すぎる配列が多い場合 → トリミング設定を見直す           |
 | **denoising-stats.qzv** | 「**Overview → Interactive Sample Detail**」 | 各サンプルでの除去率  | 🔹 **non-chimeric（最終列）** が数千以上ならOK<br>🔹 途中で極端に減っている（inputに対し非キメラが10％未満）サンプル → 品質要確認 |
 
-そして、**table.qzv** の**Minimum frequency**は**STEP10で↓の□□□を調整する際に用います。**
+そして、**table.qzv** の**Maximum・Minimum frequency**は**STEP10で↓の□□□を調整する際に用います。**
 
 　`--p-sampling-depth □□□`
+
+例：Maximum frequency＝8343　　Minimum frequency＝3349
+
+のように覚えておいてください。
+
+
 
 ## 🧬 STEP 8｜分類（SILVA分類器）
 
@@ -431,7 +437,7 @@ qiime metadata tabulate \
 ```
 results_qiime\results_taxonomyに**taxonomy.qzv**が生成されます。
 
-→ taxonomy.qzv を 👉 https://view.qiime2.org　にドラッグして確認。
+→ taxonomy.qzv を 👉 https://view.qiime2.org にドラッグして確認。
 
 **分類された菌群**（例：Firmicutes, Bacteroidetes, Lactobacillus など）が見られます。
 
@@ -453,7 +459,7 @@ qiime taxa barplot \
 ✅ 出力：
 ・taxa-bar-plots.qzv（分類棒グラフ）
 
-👉 https://view.qiime2.orgで開くと
+👉 https://view.qiime2.org で開くと
 
 **グループごとに菌構成の割合**（例：Firmicutes/Bacteroidetes比など）を確認できます。
 
@@ -516,7 +522,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 
 **解析→結果可視化→統計解析**
 
-で進むため、👉 https://view.qiime2.org　で見るのは
+で進むため、👉 https://view.qiime2.org で見るのは
 
 **可視化後→確認程度　　統計解析後→解析結果**　がいいと思います。
 
@@ -524,6 +530,11 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 **①飽和深度の確認（α-rarefaction）**
 
 α多様性指標がどのdepthで安定（飽和）するかを確認します。
+
+STEP7で**table.qzv** の**Maximum frequency**で確認した数値を参考に**以下の□□□の数値を決定**します。
+
+例えば、Minimum frequency＝**8343**の場合、
+**`--p-max-depth 8343`**
 
 「📋」
 ```bash
@@ -538,7 +549,7 @@ qiime diversity alpha-rarefaction \
 
 `/results_coremetrics/alpha_rarefaction.qzv`
 
-　→👉https://view.qiime2.org　で確認し、
+　→👉 https://view.qiime2.org で確認し、
 
  **ShannonやFaith PDが横ばいになるdepth**を基準に以降の解析depthを決定します。
  
@@ -550,7 +561,7 @@ qiime diversity alpha-rarefaction \
 
 depthを下に、以下の□□□の変更をお願いします。
 
-例：`--p-sampling-depth 1000`
+例：`--p-sampling-depth 3000`
 
 「📋」
 ```bash
@@ -604,7 +615,7 @@ alpha/
 ├─ observed_features_index.qzv
 └─ evenness_index.qzv
 ```
-👉 https://view.qiime2.orgで開くと、各サンプルのα多様性値が確認できます。
+👉 https://view.qiime2.org で開くと、各サンプルのα多様性値が確認できます。
 
 **🔹 統計解析（group significance）**
 
@@ -629,7 +640,7 @@ alpha/
 ├─ observed_features_significance.qzv
 └─ evenness_significance.qzv
 ```
-👉 qvzファイルを　https://view.qiime2.org
+👉 qvzファイルを https://view.qiime2.org で有意差等を確認してください。
 
 **📈 確認ポイント**
 
@@ -642,6 +653,13 @@ alpha/
 #### β多様性解析
 
 **① 群間差の解析（core-metrics）**
+
+まず、結果格納用フォルダを作成します。
+
+「📋」
+```bash
+mkdir -p "$master/results_qiime/results_coremetrics/beta"
+```
 
 STEP7で**table.qzv** の**Minimum frequency**で確認した数値を参考に**以下の□□□の数値を決定**します。
 
@@ -669,7 +687,7 @@ beta/
 └─ *_pcoa_results.qza
 ```
 
-👉 ~emperor.qvzを　https://view.qiime2.org　で開くと、
+👉 ~emperor.qvzを https://view.qiime2.org で開くと、
 
 群間の分離が明瞭なほど、菌叢構造に違いがあると判断できます。
 
@@ -699,7 +717,7 @@ beta/
 └─ unweighted_unifrac_significance.qzv
 ```
 
-👉 qvzファイルを　https://view.qiime2.org
+👉 qvzファイルを https://view.qiime2.org で有意差等を確認してください。
 
 **📊 確認ポイント**
 
@@ -723,7 +741,81 @@ beta/
 
 ---
 
-## 🧬 STEP 11｜PICRUSt2解析
+## 🧩 STEP11｜差次的菌種解析（ANCOM解析）
+### 🎯 目的
+ANCOM（Analysis of Composition of Microbiomes）は、
+**グループ間で有意に多い菌（特徴菌）を統計的に抽出**する解析手法です。
+
+---
+
+#### 🧪 ① 実行コード
+まず、結果格納用フォルダを作成します。
+
+「📋」
+```bash
+mkdir -p "$master/results_qiime/results_ancom"
+```
+
+以下で、**比較を行うlevel（分類階層）**　の指定を行います。
+
+目安を参考に設定してください。
+
+**💡 level（分類階層）の目安**
+| level | 階層           | 例                    | 用途の目安               |
+| :---: | :----------- | :------------------- | :------------------ |
+|   5   | Family（科）    | Lachnospiraceae      | 大まかな群の傾向を確認したいとき    |
+| **6** | **Genus（属）** | **Bacteroides**      | **腸内細菌叢研究で一般的（推奨）** |
+|   7   | Species（種）   | Bacteroides vulgatus | データの解像度が十分な場合のみ推奨   |
+
+指定は以下のコードの**LEVEL=□**の変更からできます。
+例：**`LEVEL=6`**
+
+「📋」
+```bash
+qiime taxa collapse \
+  --i-table "$master/results_qiime/results_dada2/table.qza" \
+  --i-taxonomy "$master/results_qiime/results_taxonomy/taxonomy.qza" \
+  --p-level $LEVEL \
+  --o-collapsed-table "$master/results_qiime/results_ancom/table_level${LEVEL}.qza" && \
+qiime composition add-pseudocount \
+  --i-table "$master/results_qiime/results_ancom/table_level${LEVEL}.qza" \
+  --o-composition-table "$master/results_qiime/results_ancom/comp_level${LEVEL}.qza" && \
+qiime composition ancom \
+  --i-table "$master/results_qiime/results_ancom/comp_level${LEVEL}.qza" \
+  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --m-metadata-column Group \
+  --o-visualization "$master/results_qiime/results_ancom/ancom_level${LEVEL}.qzv"
+
+LEVEL=□
+```
+✅ 出力
+```
+results_ancom/
+├─ table_level6.qza        ← 集計後テーブル
+├─ comp_level6.qza         ← 補正済みテーブル
+└─ ancom_level6.qzv        ← 結果（可視化用）
+```
+👉 ancom_level6.qzv を
+https://view.qiime2.org にドラッグして確認します。
+
+---
+
+#### 🔍 ② 結果の見方
+| 項目                         | 意味               | 解釈のポイント         |
+| -------------------------- | ---------------- | --------------- |
+| **W値（W-statistic）**        | 他菌との比較で有意差があった回数 | 値が大きいほど群間差が明確   |
+| **Reject null hypothesis** | “True”なら群間で有意差あり | 特徴菌として注目        |
+| **箱ひげ図・棒グラフ**              | 各群の菌割合を表示        | どちらの群で多いか直感的に確認 |
+
+**📈  解釈例**
+| 結果                             | 解釈                          |
+| ------------------------------ | --------------------------- |
+| *Bacteroides*（W=85, True）      | RBR群で有意に多い属。脂質代謝への関与が推定される。 |
+| *Lachnospiraceae*（W=25, False） | 差は検出されず、群間でほぼ同程度。           |
+
+---
+
+## 🧬 STEP 12｜PICRUSt2解析
 目的：16S配列から、腸内細菌が持つ代謝経路を予測します。
 
 「📋」
@@ -746,7 +838,7 @@ qiime picrust2 full-pipeline \
 
 ---
 
-## 📈 STEP 12｜相対値変換とエクスポート（KEGG/EC/Pathway）
+## 📈 STEP 13｜相対値変換とエクスポート（KEGG/EC/Pathway）
 
 STEP11（PICRUSt2解析）で生成された各ファイル用いて
 

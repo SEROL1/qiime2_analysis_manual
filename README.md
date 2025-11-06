@@ -269,6 +269,8 @@ qiime demux summarize \
 
 生成されたグラフを確認し、**トリミング長**を決定します。
 
+---
+
 **💡 なぜこの作業が必要なのか？**
 
 シーケンサーで得られたリード（配列）は、末端に近づくほど**エラーが増える**という特徴があります。
@@ -283,6 +285,8 @@ qiime demux summarize \
 
 そこで、　**品質が急激に低下する部分を切り落とす（トリミング）**　ことで、
 データの信頼性を保ち、以降の解析（DADA2・分類・多様性解析など）を正確に行うことができます。
+
+---
 
 **👀 Phredスコアグラフの見方**
 
@@ -304,6 +308,8 @@ qiime demux summarize \
 
 グラフの黒部分を参考に、各トリミング長を判断します。
 
+---
+
 **✂️ トリミング長の決め方（実践ステップ）**
 
 **1.Forward（R1）・Reverse（R2）の両方を確認**
@@ -316,13 +322,13 @@ qiime demux summarize \
 
 たとえば、R1のスコアが270bp付近で下がり始めたら、
 
-TRUNC_F=**270**
+**`TRUNC_F= 270 `**
 
 とします。
 
 同様に、R2が220bpあたりで下がるなら、
 
-TRUNC_R=**220**
+**`TRUNC_R=220`**
 
 とします。
 
@@ -415,6 +421,8 @@ qiime metadata tabulate \
   --m-input-file "$master/results_qiime/results_taxonomy/taxonomy.qza" \
   --o-visualization "$master/results_qiime/results_taxonomy/taxonomy.qzv"
 ```
+results_qiime\results_taxonomyに**taxonomy.qzv**が生成されます。
+
 → taxonomy.qzv を 👉 https://view.qiime2.orgにドラッグして確認。
 
 **分類された菌群**（例：Firmicutes, Bacteroidetes, Lactobacillus など）が見られます。
@@ -440,6 +448,8 @@ qiime taxa barplot \
 👉 https://view.qiime2.orgで開くと
 
 **グループごとに菌構成の割合**（例：Firmicutes/Bacteroidetes比など）を確認できます。
+
+上部のLevelを1～7で変えることで**より細かい菌構成の比較**ができると思います。
 
 ---
 

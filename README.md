@@ -837,7 +837,7 @@ qiime picrust2 full-pipeline \
   --i-table "$master/results_qiime/results_dada2/table.qza" \
   --i-seq "$master/results_qiime/results_dada2/rep-seqs.qza" \
   --p-threads 1 \
-  --output-dir "$master/results_picrust2/results_pipeline_$(date +%Y%m%d_%H%M%S)"
+  --output-dir "$master/results_picrust2/results_pipeline"
 ```
 
 ✅ 出力：
@@ -950,55 +950,94 @@ PICRUSt2 の結果を、グループ比較しやすい形に整形し、
 
 「📋」
 ```bash
+PIPE="$master/results_picrust2/results_pipeline"
 OUTV="$master/results_picrust2/results_visualization"
 OUTE="$master/results_picrust2/results_export"
+META="$master/metadata/metadata.tsv"
 mkdir -p "$OUTV/barplot" "$OUTE"
 
-# 相対化（各サンプルで合計=1）
-qiime feature-table relative-frequency \
-  --i-table "$master/results_picrust2/results_pipeline/pathway_abundance.qza" \
-  --o-relative-frequency-table "$OUTV/barplot/pathway_abundance_rel.qza"
-
-# Group列でグループ平均（代表）テーブル作成
+# 1) カウントのままグループ化（サンプル軸）
 qiime feature-table group \
-  --i-table "$OUTV/barplot/pathway_abundance_rel.qza" \
-  --m-metadata-file "$master/metadata/metadata.tsv" \
+  --i-table "$PIPE/pathway_abundance.qza" \
+  --m-metadata-file "$META" \
   --m-metadata-column Group \
-  --p-mode mean-ceiling \
-  --o-grouped-table "$OUTV/barplot/pathway_by_group_rel.qza"
+  --p-mode sum \
+  --p-axis sample \
+  --o-grouped-table "$OUTV/barplot/pathway_by_group.qza"
 
-# サマリー（行列サイズや各グループ合計のチェック用）
+# 2) 相対化（各グループで合計=1）
+qiime feature-table relative-frequency \
+  --i-table "$OUTV/barplot/pathway_by_group.qza" \
+  --o-relative-frequency-table "$OUTV/barplot/pathway_by_group_rel.qza"
+
+# 3) サマリーはカウント側に対して実施
 qiime feature-table summarize \
-  --i-table "$OUTV/barplot/pathway_by_group_rel.qza" \
-  --o-visualization "$OUTV/barplot/pathway_by_group_rel_summary.qzv"
+  --i-table "$OUTV/barplot/pathway_by_group.qza" \
+  --o-visualization "$OUTV/barplot/pathway_by_group_summary.qzv"
 ```
 
-👉 pathway_by_group_rel_summary.qzv を
+👉 pathway_by_group_summary.qzv を
 https://view.qiime2.org
  にドラッグ＆ドロップして確認します。
+
+ここで各グループの合計リード数や特徴量数を確認します。
 
  ---
 
 #### ② 可視化：上位パスウェイのヒートマップ
 
-全部載せると見づらいので、**上位だけ**で綺麗な図にします。
+全部を描くと多すぎて見づらいので、「出現量の少ない経路」をあらかじめ除外します。
 
-閾値で切る方法がシンプルです（例：全体合計の0.1%以上）。
+このとき使うのが --p-min-frequency **（最小リード数）** です。
+
+**🔍 閾値（しきい値）の決め方**
+
+feature-table filter-features の --p-min-frequency は
+
+整数（リード数） で指定します。
+
+この値より少ない特徴（＝パスウェイ）は削除されます。
+
+**📘 基本の考え方**
+
+閾値は、**「全体のリード数 × 割合」** で計算します。
+
+例）
+
+・各グループ（sample）の平均リード数（Mean frequency）が **1,783,000** のとき
+「全体の0.1%未満を除外」したいなら：
+
+`1,783,000 × 0.001 ＝ 約 1,800`
+
+👉 --p-min-frequency 1800 と指定すればOKです。
+
+**💡 簡単な目安表**
+| 割合（相対）   | リード数の目安（Mean frequency = 1,783,000 の場合） | 効果の目安            |
+| -------- | --------------------------------------- | ---------------- |
+| 1%       | 約17,800                                 | 主要経路のみ残す（やや厳しめ）  |
+| **0.1%** | **約1,800（おすすめ）**                        | ノイズを除きつつ主要経路を保持  |
+| 0.05%    | 約900                                    | 緩やかな除外（細かい経路も残す） |
+| 0.01%    | 約180                                    | ほぼ全経路を残す（図が多くなる） |
+
 
 「📋」
 ```bash
-# 低頻度パスウェイを除外（合計 0.1% 未満をカット）
-# ※ 相対化済みでも機能します。閾値はデータに合わせて調整してOK（例: 0.005 など）
+# 低頻度パスウェイを除外（例：全体の0.1%未満 ≒ 約1,800リード以下をカット）
 qiime feature-table filter-features \
-  --i-table "$OUTV/barplot/pathway_by_group_rel.qza" \
-  --p-min-frequency 0.001 \
-  --o-filtered-table "$OUTV/barplot/pathway_by_group_rel_top.qza"
+  --i-table "$OUTV/barplot/pathway_by_group.qza" \
+  --p-min-frequency 1800 \
+  --o-filtered-table "$OUTV/barplot/pathway_by_group_top.qza"
+
+# 相対化（上位のみ）
+qiime feature-table relative-frequency \
+  --i-table "$OUTV/barplot/pathway_by_group_top.qza" \
+  --o-relative-frequency-table "$OUTV/barplot/pathway_by_group_rel_top.qza"
 
 # ヒートマップ（グループ比較の俯瞰図）
 qiime feature-table heatmap \
-  --i-table "$OUTV/barplot/pathway_by_group_rel_top.qza" \
-  --m-metadata-file "$master/metadata/metadata.tsv" \
-  --m-metadata-column Group \
+  --i-table "$OUTV/barplot/pathway_by_group_top.qza" \
+  --m-sample-metadata-file "$META" \
+  --m-sample-metadata-column Group \
   --o-visualization "$OUTV/barplot/pathway_by_group_heatmap.qzv"
 ```
 
@@ -1007,6 +1046,9 @@ https://view.qiime2.org
  にドラッグ＆ドロップして確認します。
 
 **濃いマスが多いグループ＝その経路が豊富なグループ**です。
+
+見づらい場合は、--p-min-frequency の値を調整して、
+残すパスウェイ数をコントロールしてください。
 
 >注：Taxa Bar Plot は分類（SILVA）専用なので、パスウェイはヒートマップが扱いやすいです。
 >棒グラフが必要なら、このあとTSVへエクスポートしてExcel/GraphPad/Rで描くのが早いです。
@@ -1019,29 +1061,17 @@ https://view.qiime2.org
 
 「📋」
 ```bash
-# BIOMをエクスポート
-qiime tools export \
-  --input-path "$OUTV/barplot/pathway_by_group_rel.qza" \
-  --output-path "$OUTE/pathway_by_group_rel_biom"
-
-# BIOM → TSV へ変換
-biom convert \
-  -i "$OUTE/pathway_by_group_rel_biom/feature-table.biom" \
-  -o "$OUTE/pathway_by_group_rel.tsv" \
-  --to-tsv
-
-# 参考：上位だけのテーブルも出しておくと便利
 qiime tools export \
   --input-path "$OUTV/barplot/pathway_by_group_rel_top.qza" \
-  --output-path "$OUTE/pathway_by_group_rel_top_biom"
+  --output-path "$OUTE/export_pathway_by_group_rel_top"
 
 biom convert \
-  -i "$OUTE/pathway_by_group_rel_top_biom/feature-table.biom" \
+  -i "$OUTE/export_pathway_by_group_rel_top/feature-table.biom" \
   -o "$OUTE/pathway_by_group_rel_top.tsv" \
   --to-tsv
 ```
-👉 results_export/pathway_by_group_rel.tsv をExcel/GraphPad/Rに読み込み、
-上位20〜30経路の棒グラフを描くと発表映えします。
+👉 pathway_by_group_rel_top.tsv を Excel や GraphPad Prism に読み込み、
+上位20～30経路を棒グラフにすれば発表映えします。
 
 ---
 

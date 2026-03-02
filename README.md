@@ -57,7 +57,7 @@ C:\Users\ユーザー名\Desktop\FASTQ_2025_10_30
 ~/qiime/
 ├── tools/      ←解析用スクリプトフォルダ（触らない）
 ├── template/   ←各班が使用する雛形フォルダ（コピペして使用する）
-├── database/ 　←解析用機器（触らない）
+├── databases/ 　←解析用機器（触らない）
 ```
 
 以上の/templateフォルダをフォルダをコピーして**自分の班名**に変更します。
@@ -65,7 +65,7 @@ C:\Users\ユーザー名\Desktop\FASTQ_2025_10_30
 ~/qiime/
 ├── tools/      ←解析用スクリプトフォルダ（触らない）
 ├── template/   ←各班が使用する雛形フォルダ（消さないように注意）
-├── database/ 　←解析用機器（触らない）
+├── databases/ 　←解析用機器（触らない）
 ├── 自分の班名/  ←コピペして名前を変更、この名前を今後の解析で使います。
 ```
 
@@ -82,11 +82,11 @@ C:\Users\ユーザー名\Desktop\FASTQ_2025_10_30
 │   ├── results_qiime/
 │   └── results_picrust2/
 ├── tools/
-├── database/
+├── databases/
 ```
 
 ```
-~/qiime/自分の判明/
+~/qiime/自分の班名/
 ├── raw_data/
 ├── manifest/
 ├── metadata/
@@ -131,12 +131,13 @@ ls
 
 「📋」**□を消して自分の班名に変更**
 ```bash
-export master="/home/seeei/qiime/フォルダ名"
+export master="$HOME/qiime/□□□"
 ```
 
 「📋」
 ```bash
-cd $master
+export BASE="$HOME/qiime/$master"
+cd "$BASE"
 ```
 
 これ以降、すべてのコマンドで　**$master**　が自動的に班名に置き換わります。  
@@ -185,7 +186,14 @@ manifest  metadata  raw_data  results_picrust2  results_qiime
 bash ~/qiime/tools/make_manifest.sh
 ```
 自動で $master/manifest/manifest.tsv が生成されます。  
-生成後、manifest.tsvをexcelで開き
+生成後、manifest.tsv を LibreOffice Calc で開きます。
+
+【開き方】
+1. LibreOffice Calc を起動
+2. 「ファイル」→「開く」から manifest.tsv を選択
+3. 文字コード：UTF-8
+4. 区切り文字：タブ（☑ タブ のみチェック）
+5. OK を押して開く
 
 **一列目の「sample-id」 列を自分のサンプル名（例：NC1～5, HF1～5, RBR1～5）に編集します。**
 
@@ -196,7 +204,17 @@ bash ~/qiime/tools/make_manifest.sh
 | 例：HF1     | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R1_001.fastq.gz | /home/ishikawa/qiime/raw_data/HF1_S2_L001_R2_001.fastq.gz |
 
 
-以上のようにsample_idの編集を行った後、**💾上書き保存**をしてください。
+以上のようにsample_idの編集を行った後、
+
+「ファイル」→「名前を付けて保存」
+
+ファイル形式：テキストCSV（.csv）ではなく
+必ず「**テキスト（タブ区切り）（.tsv）**」を選択してください。
+
+保存時の確認画面では
+文字コード：UTF-8
+区切り文字：{Tab}
+を選択します。
 
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 
@@ -215,7 +233,16 @@ sed -i '1s/^\xEF\xBB\xBF//' "$master/manifest/manifest.tsv"
 bash ~/qiime/tools/make_metadata.sh
 ```
 自動で $master/metadata/metadata.tsv　が生成されます。 
-生成後、metadata.tsvをexcelで開き、
+metadata.tsv を LibreOffice Calc で開きます。
+
+【開き方】
+1. LibreOffice Calc を起動
+2. 「ファイル」→「開く」から metadata.tsv を選択
+3. 文字コード：UTF-8
+4. 区切り文字：タブ（☑ タブ のみチェック）
+5. OK を押して開く
+
+
 **group 列（例：NC, HF, BR, RBR）は各班で手動入力してください。**
 
 **例（Excel表示）**
@@ -227,7 +254,7 @@ bash ~/qiime/tools/make_metadata.sh
 | HF1       | HF          |
 | HF2       | HF          |
 
-以上のようにgroupの編集を行った後、**💾上書き保存**をしてください。
+以上のようにgroupの編集を行った後、**💾保存**をしてください。
 
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 

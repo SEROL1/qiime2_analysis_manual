@@ -933,7 +933,9 @@ qiime picrust2 full-pipeline \
   --i-table "$master/results_qiime/results_dada2/table.qza" \
   --i-seq "$master/results_qiime/results_dada2/rep-seqs.qza" \
   --p-threads 1 \
-  --output-dir "$master/results_picrust2/results_pipeline"
+  --o-ko-metagenome "$master/results_picrust2/results_pipeline/KO_metagenome.qza" \
+  --o-ec-metagenome "$master/results_picrust2/results_pipeline/EC_metagenome.qza" \
+  --o-pathway-abundance "$master/results_picrust2/results_pipeline/pathway_abundance.qza"
 ```
 
 ✅ 出力：

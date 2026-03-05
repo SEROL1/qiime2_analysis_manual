@@ -614,9 +614,15 @@ qiime diversity alpha-rarefaction \
 
 `/results_coremetrics/alpha_rarefaction.qzv`
 
-　→👉 https://view.qiime2.org で確認し、
+　→👉 https://view.qiime2.org で確認します。
 
- **ShannonやFaith PDが横ばいになるdepth**を基準に以降の解析depthを決定します。
+ Metricを選択し、**faith_pdとshannon**を確認します。
+
+ どちらも**faith_pdとshannonの曲線が横ばいになり安定しているSequencing Depth**を用います。
+
+例えば、この曲線なら3000を用います。
+<img width="908" height="374" alt="image" src="https://github.com/user-attachments/assets/50b7fe67-85b2-4c87-9ab7-55af977164b8" />
+
  
 ---
 

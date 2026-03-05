@@ -333,7 +333,7 @@ Saved Visualization to: …/results_qiime/results_dada2/demux.qzv
 「**Interactive Quality Plot**」を開き
 生成されたグラフを確認し、**トリミング長**を決定します。
 
-この**トリミング長**をもとに、次にうつコードである↓の□□□の数字を各自変更します。
+この**トリミング長**をもとに、STER7で使用するコードである↓の□□□の数字を各自変更します。
 
   `export TRUNC_F=□□□
    export TRUNC_R=□□□`
@@ -387,6 +387,7 @@ Saved Visualization to: …/results_qiime/results_dada2/demux.qzv
 
 目安として、**Phredスコアの基準を30とし、グラフの黒部分が30を超え始める箇所**を探します。
 
+
 **2.品質低下が始まる少し手前をカット位置に設定**
 
 たとえば、R1のスコアが270bp付近で下がり始めたら、
@@ -400,6 +401,7 @@ Saved Visualization to: …/results_qiime/results_dada2/demux.qzv
 **`TRUNC_R=220`**
 
 とします。
+
 
 **3.短すぎるトリミングは避ける**
 

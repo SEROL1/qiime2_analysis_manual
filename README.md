@@ -274,6 +274,20 @@ metadata.tsv を LibreOffice Calc で開きます。
 head metadata/metadata.tsv
 ```
 
+出力が以下のようになっていれば問題ないです。
+```bash
+sample-id       Group
+#q2:types       categorical
+NC1     NC
+NC2     NC
+NC3     NC
+NC4     NC
+HF1     HF
+HF2     HF
+HF3     HF
+HF4     HF
+```
+
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 
 「📋」

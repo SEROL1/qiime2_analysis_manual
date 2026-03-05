@@ -209,6 +209,22 @@ bash ~/qiime/tools/make_manifest.sh
 
 **「ファイル」→「保存」→「Use テキスト CSV Format」**
 
+うまく名前の編集・保存ができているかを以下で確認します。
+
+「📋」
+```bash
+head manifest/manifest.tsv
+```
+
+出力が以下のようになっていれば問題ないです。
+```bash
+sample-id       forward-absolute-filepath       reverse-absolute-filepath
+NC1     /home/haneishi/qiime/ishikawa/raw_data/39320-04_S1_L001_R1_001.fastq.gz /home/haneishi/qiime/ishikawa/raw_data/39320-04_S1_L001_R2_001.fastq.gz
+NC2     /home/haneishi/qiime/ishikawa/raw_data/39320-05_S2_L001_R1_001.fastq.gz /home/haneishi/qiime/ishikawa/raw_data/39320-05_S2_L001_R2_001.fastq.gz
+NC3     /home/haneishi/qiime/ishikawa/raw_data/39320-06_S3_L001_R1_001.fastq.gz /home/haneishi/qiime/ishikawa/raw_data/39320-06_S3_L001_R2_001.fastq.gz
+NC4     /home/haneishi/qiime/ishikawa/raw_data/39320-07_S4_L001_R1_001.fastq.gz /home/haneishi/qiime/ishikawa/raw_data/39320-07_S4_L001_R2_001.fastq.gz
+```
+
 画面を閉じ、次の操作に移ってください。
 
 「📋」

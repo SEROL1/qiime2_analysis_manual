@@ -1123,19 +1123,17 @@ feature-table filter-features の --p-min-frequency は
 qiime feature-table filter-features \
   --i-table "$OUTV/barplot/pathway_by_group.qza" \
   --p-min-frequency 1800 \
-  --o-filtered-table "$OUTV/barplot/pathway_by_group_top.qza"
+  --o-filtered-table "$OUTV/barplot/pathway_by_group_filtered.qza"
 
 # 相対化（上位のみ）
 qiime feature-table relative-frequency \
-  --i-table "$OUTV/barplot/pathway_by_group_top.qza" \
-  --o-relative-frequency-table "$OUTV/barplot/pathway_by_group_rel_top.qza"
+  --i-table "$OUTV/barplot/pathway_by_group_filtered.qza" \
+  --o-relative-frequency-table "$OUTV/barplot/pathway_by_group_relative.qza"
 
 # ヒートマップ（グループ比較の俯瞰図）
 qiime feature-table heatmap \
-  --i-table "$OUTV/barplot/pathway_by_group_top.qza" \
-  --m-sample-metadata-file "$META" \
-  --m-sample-metadata-column Group \
-  --o-visualization "$OUTV/barplot/pathway_by_group_heatmap.qzv"
+  --i-table "$OUTV/barplot/pathway_by_group_relative.qza" \
+  --o-visualization "$OUTV/barplot/pathway_heatmap.qzv"
 ```
 
 👉 pathway_by_group_heatmap.qzv を

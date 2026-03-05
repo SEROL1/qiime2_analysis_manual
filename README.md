@@ -606,7 +606,7 @@ STEP7で**table.qzv** の**Maximum frequency**で確認した数値を参考に*
 qiime diversity alpha-rarefaction \
   --i-table "$master/results_qiime/results_dada2/table.qza" \
   --i-phylogeny "$master/results_qiime/results_coremetrics/rooted-tree.qza" \
-  --p-max-depth 8343 \
+  --p-max-depth □□□ \
   --m-metadata-file "$master/metadata/metadata.tsv" \
   --o-visualization "$master/results_qiime/results_coremetrics/alpha_rarefaction.qzv"
 ```

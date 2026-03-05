@@ -464,7 +464,7 @@ bash -lc '
 | ----------------------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------ |
 | **table.qzv**           | 「**Table summary → Frequency per sample**」 | サンプルごとのリード数 | 🔹 **Minimum frequency** が **3000以上ならOK**<br>🔹 極端に少ないサンプル（例：1000未満）があれば除外検討         |
 | **rep-seqs.qzv**        | 「**Overview → Sequence Lengths**」          | 代表配列の長さ分布   | 🔹 V4領域なら **240〜260 bp**　V3-4領域なら、**430～470bp** ならOK<br>🔹 短すぎる／長すぎる配列が多い場合 → トリミング設定を見直す           |
-| **denoising-stats.qzv** | 「**Overview → Interactive Sample Detail**」 | 各サンプルでの除去率  | 🔹 **non-chimeric（最終列）** が数千以上ならOK<br>🔹 途中で極端に減っている（inputに対し非キメラが10％未満）サンプル → 品質要確認 |
+| **denoising-stats.qzv** | 「**Overview → Interactive Sample Detail**」 | 各サンプルでの除去率  | 🔹 **non-chimeric（最終列）** が数千以上ならOK<br>🔹 途中で極端に減っている（inputに対し*non-chimericが10％未満）サンプル → 品質要確認 |
 
 そして、**table.qzv** の**Maximum・Minimum frequency**は**STEP10で↓の□□□を調整する際に用います。**
 

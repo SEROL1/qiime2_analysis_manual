@@ -271,7 +271,7 @@ metadata.tsv を LibreOffice Calc で開きます。
 
 「📋」
 ```bash
-head metadate/metadate.tsv
+head metadata/metadata.tsv
 ```
 
 次に、後処理として以下を実行することで、ご認識を防ぎます。

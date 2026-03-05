@@ -136,8 +136,7 @@ export master="$HOME/qiime/□□□"
 
 「📋」
 ```bash
-export BASE="$HOME/qiime/$master"
-cd "$BASE"
+cd "$master"
 ```
 
 これ以降、すべてのコマンドで　**$master**　が自動的に班名に置き換わります。  

@@ -263,7 +263,16 @@ metadata.tsv を LibreOffice Calc で開きます。
 | HF1       | HF          |
 | HF2       | HF          |
 
-以上のようにgroupの編集を行った後、**💾保存**をしてください。
+編集後
+
+**「ファイル」→「保存」→「Use テキスト CSV Format」**
+
+うまく名前の編集・保存ができているかを以下で確認します。
+
+「📋」
+```bash
+head metadate/metadate.tsv
+```
 
 次に、後処理として以下を実行することで、ご認識を防ぎます。
 

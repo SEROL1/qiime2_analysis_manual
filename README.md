@@ -324,6 +324,10 @@ qiime demux summarize \
   --i-data "$master/results_qiime/results_dada2/demux.qza" \
   --o-visualization "$master/results_qiime/results_dada2/demux.qzv"
 ```
+✅ 成功メッセージ
+Saved Visualization to: …/results_qiime/results_dada2/demux.qzv
+が出ればOK。
+
 **生成された qzvファイルを 👉 https://view.qiime2.org にドラッグ＆ドロップして確認します。**
 
 生成されたグラフを確認し、**トリミング長**を決定します。

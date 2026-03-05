@@ -330,6 +330,7 @@ Saved Visualization to: …/results_qiime/results_dada2/demux.qzv
 
 **生成された qzvファイルを 👉 https://view.qiime2.org にドラッグ＆ドロップして確認します。**
 
+「**Interactive Quality Plot**」を開き
 生成されたグラフを確認し、**トリミング長**を決定します。
 
 この**トリミング長**をもとに、次にうつコードである↓の□□□の数字を各自変更します。

@@ -225,7 +225,7 @@ NC3     /home/haneishi/qiime/ishikawa/raw_data/39320-06_S3_L001_R1_001.fastq.gz 
 NC4     /home/haneishi/qiime/ishikawa/raw_data/39320-07_S4_L001_R1_001.fastq.gz /home/haneishi/qiime/ishikawa/raw_data/39320-07_S4_L001_R2_001.fastq.gz
 ```
 
-画面を閉じ、次の操作に移ってください。
+Excel画面を閉じ、次の操作に移ってください。
 
 「📋」
 ```bash
